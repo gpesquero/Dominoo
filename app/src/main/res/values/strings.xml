@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Dominoo</string>
+    <string name="player_name_">Player name:</string>
+    <string name="connect">Connect</string>
+</resources>
