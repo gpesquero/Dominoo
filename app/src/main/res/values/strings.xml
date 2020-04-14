@@ -2,4 +2,11 @@
     <string name="app_name">Dominoo</string>
     <string name="player_name_">Player name:</string>
     <string name="connect">Connect</string>
+    <string name="key_player_name" translatable="false">key_player_name</string>
+    <string name="default_player_name">Player01</string>
+    <string name="player_name_is_too_short">Player name is too short. Insert a player name with at least 4 characters</string>
+    <string name="player_name_is_too_long">Player name is too long (Maximum lenght is 20 characters)</string>
+    <string name="player_name_has_special_char">Player name has special characters. Use only letters and numbers</string>
+    <string name="connecting_">Connecting...</string>
+    <string name="error_while_connecting">Error while connecting to server</string>
 </resources>
