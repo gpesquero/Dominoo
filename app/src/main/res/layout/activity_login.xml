@@ -2,17 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#8BC34A"
+    android:background="#0B6623"
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/textView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
@@ -21,7 +21,7 @@
         android:textSize="64sp" />
 
     <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -48,14 +48,14 @@
         android:visibility="invisible" />
 
     <TextView
-        android:id="@+id/textView6"
+        android:id="@+id/textView4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/textView5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="30dp"
@@ -87,7 +87,7 @@
         android:text="@string/connect" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/textView6"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1" />

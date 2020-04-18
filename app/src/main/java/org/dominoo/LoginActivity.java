@@ -1,11 +1,10 @@
 package org.dominoo;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -13,45 +12,44 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class LoginActivity extends Activity implements View.OnClickListener {
+import static android.widget.Toast.LENGTH_LONG;
 
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+
+    // Controls
     ProgressBar mProgressBar;
     TextView mTextViewConnecting;
     TextView mEditTextPlayerName;
     Button mButtonConnect;
 
+    // App private shared preferences
     SharedPreferences mPrefs;
 
-    Handler mTimerHandler;
+    SocketStatus mSocketStatus=null;
 
-    ConnectToServerTask mConnectToServerTask;
+    private LoginViewModel mLoginViewModel=null;
 
-    private final int mMaxTimeout=10000;    // 10 seconds
-    private final int mTimerDelay=200;
+    private final int MAX_TIMEOUT=10000;    // 10 seconds
 
-    private final String KEY_IS_CONNECTING="KEY_IS_CONNECTING";
-    private final String KEY_PROGRESS="KEY_PROGRESS";
+    private final static String SERVER_ADDRESS="192.168.1.146";
+    private final static int SERVER_PORT=52301;
 
-    private Runnable mTimerRunnable=new Runnable() {
+    // Create the observer which updates the UI.
+    final Observer<SocketStatus> mSocketObserver = new Observer<SocketStatus>() {
 
         @Override
-        public void run() {
+        public void onChanged(@Nullable final SocketStatus newSocketStatus) {
 
-            int pos=mProgressBar.getProgress();
-
-            pos+=mTimerDelay;
-
-            mProgressBar.setProgress(pos);
-
-            mTimerHandler.postDelayed(this, mTimerDelay);
+            onSocketStatusChanged(newSocketStatus);
         }
     };
 
@@ -61,42 +59,47 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
         setContentView(R.layout.activity_login);
 
+        mLoginViewModel=ViewModelProviders.of(this).get(LoginViewModel.class);
+
         mPrefs=getPreferences(Context.MODE_PRIVATE);
 
-        String playerName=mPrefs.getString(getString(R.string.key_player_name),
-                getString(R.string.default_player_name));
-
         mProgressBar=findViewById(R.id.progressBar);
-        mProgressBar.setMax(mMaxTimeout);
+        mProgressBar.setMax(MAX_TIMEOUT);
 
         mTextViewConnecting=findViewById(R.id.textViewConnecting);
 
         mEditTextPlayerName=findViewById(R.id.editTextPlayerName);
+
+        String playerName=mPrefs.getString(getString(R.string.key_player_name), getString(R.string.default_player_name));
+
         mEditTextPlayerName.setText(playerName);
 
         mButtonConnect=findViewById(R.id.buttonConnect);
         mButtonConnect.setOnClickListener(this);
 
-        if (savedInstanceState!=null) {
+        //boolean isConnecting;
+        //int progress;
 
-            boolean isConnecting=savedInstanceState.getBoolean(KEY_IS_CONNECTING);
-            int progress=savedInstanceState.getInt(KEY_PROGRESS);
+        LiveData<SocketStatus> ldSocketStatus=mLoginViewModel.attach();
 
-            updateControls(isConnecting, progress);
+        if (ldSocketStatus==null) {
 
-            if (isConnecting) {
+            mSocketStatus=new SocketStatus();
 
-                mTimerHandler=new Handler();
-                mTimerHandler.post(mTimerRunnable);
-            }
+            mSocketStatus.mStatus=SocketStatus.Status.IDLE;
         }
+        else {
+
+            mSocketStatus=ldSocketStatus.getValue();
+
+            ldSocketStatus.observe(this, mSocketObserver);
+        }
+
+        updateControls();
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-
-        outState.putBoolean(KEY_IS_CONNECTING, mTimerHandler!=null);
-        outState.putInt(KEY_PROGRESS, mProgressBar.getProgress());
 
         // call superclass to save any view hierarchy
         super.onSaveInstanceState(outState);
@@ -104,13 +107,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
     @Override
     protected void onDestroy() {
-
-        if (mTimerHandler!=null) {
-
-            mTimerHandler.removeCallbacks(mTimerRunnable);
-
-            mTimerHandler=null;
-        }
 
         super.onDestroy();
     }
@@ -162,26 +158,30 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             prefEditor.putString(getString(R.string.key_player_name), playerName);
             prefEditor.commit();
 
-            updateControls(true, 0);
+            updateControls();
 
-            mTimerHandler=new Handler();
-            mTimerHandler.post(mTimerRunnable);
+            LiveData<SocketStatus> ldSocket=mLoginViewModel.connectToServer(
+                    SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
 
-            connectToServer();
+            mSocketStatus=ldSocket.getValue();
+
+            ldSocket.observe(this, mSocketObserver);
+
+            updateControls();
         }
     }
 
-    private void updateControls(boolean isConnecting, int progressValue) {
+    private void updateControls() {
 
-        mProgressBar.setMax(mMaxTimeout);
-        mProgressBar.setProgress(progressValue);
-
-        if (isConnecting) {
+        if (mSocketStatus.mStatus==SocketStatus.Status.CONNECTING) {
 
             mProgressBar.setVisibility(View.VISIBLE);
             mTextViewConnecting.setVisibility(View.VISIBLE);
             mEditTextPlayerName.setEnabled(false);
             mButtonConnect.setEnabled(false);
+
+            mProgressBar.setMax(MAX_TIMEOUT);
+            mProgressBar.setProgress(mSocketStatus.mElapsedTime);
         }
         else {
 
@@ -192,81 +192,59 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private class ConnectToServerTask extends AsyncTask<Void, Void, Socket> {
+    private void onSocketStatusChanged(SocketStatus newSocketStatus)  {
 
-        public String mErrorMessage;
+        mSocketStatus=newSocketStatus;
 
-        @Override
-        protected Socket doInBackground(Void... params) {
+        String toastText=null;
 
-            InetAddress serverAddr = null;
+        switch(mSocketStatus.mStatus) {
 
-            try {
-                serverAddr = InetAddress.getByName("127.0.0.1");
+            case ERROR:
 
-            } catch (UnknownHostException e) {
+                Log.d("Prueba", "onSocketStatusChanged() ERROR");
 
-                mErrorMessage=e.getMessage();
+                toastText=getString(R.string.error_while_connecting)+" ("+
+                    mSocketStatus.mSocketErrorMessage+")";
 
-                return null;
-            }
+                mLoginViewModel.reset(this);
 
-            InetSocketAddress address=new InetSocketAddress("192.168.1.146", 52301);
+                mSocketStatus=new SocketStatus();
+                mSocketStatus.mStatus=SocketStatus.Status.IDLE;
 
-            Socket socket;
+                break;
 
-            try {
-                socket = new Socket();
+            case CONNECTED:
 
-                socket.connect(address, mMaxTimeout);
+                Log.d("Prueba", "onSocketStatusChanged() CONNECTED");
 
-            } catch (IOException e) {
+                toastText=getString(R.string.connection_successful);
 
-                mErrorMessage=e.getMessage();
+                Intent intent=new Intent(this, GameManagementActivity.class);
+                startActivity(intent);
 
-                return null;
-            }
+                break;
 
-            return socket;
+            case CONNECTING:
+
+                Log.d("Prueba", "onSocketStatusChanged() CONNECTING ("+
+                        mSocketStatus.mElapsedTime+")");
+
+                break;
+
+            default:
+
+                Log.d("Prueba", "onSocketStatusChanged() DEFAULT");
+                break;
         }
 
-        protected void onPostExecute(Socket socket) {
+        updateControls();
 
-            onConnectToServer(socket);
+        if (toastText!=null) {
+
+            Toast toast = Toast.makeText(this, toastText, LENGTH_LONG);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
         }
-    }
-
-    private void connectToServer() {
-
-        mConnectToServerTask=new ConnectToServerTask();
-
-        mConnectToServerTask.execute();
-    }
-
-    private void onConnectToServer(Socket socket) {
-
-        String text;
-
-        if (socket==null) {
-
-            text=getString(R.string.error_while_connecting)+" ("+
-                    mConnectToServerTask.mErrorMessage+")";
-        }
-        else {
-
-            text="Connection to server successful";
-        }
-
-        Toast toast=Toast.makeText(this, text, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.show();
-
-        if (mTimerHandler!=null) {
-
-            mTimerHandler.removeCallbacks(mTimerRunnable);
-            mTimerHandler=null;
-        }
-
-        updateControls(false, 0);
     }
 }

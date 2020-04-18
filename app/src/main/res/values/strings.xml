@@ -5,8 +5,10 @@
     <string name="key_player_name" translatable="false">key_player_name</string>
     <string name="default_player_name">Player01</string>
     <string name="player_name_is_too_short">Player name is too short. Insert a player name with at least 4 characters</string>
-    <string name="player_name_is_too_long">Player name is too long (Maximum lenght is 20 characters)</string>
+    <string name="player_name_is_too_long">Player name is too long (Maximum length is 20 characters)</string>
     <string name="player_name_has_special_char">Player name has special characters. Use only letters and numbers</string>
-    <string name="connecting_">Connecting...</string>
+    <string name="connecting_">Connecting…</string>
     <string name="error_while_connecting">Error while connecting to server</string>
+    <string name="connection_successful">Connection to server successful</string>
+    <string name="do_you_want_to_exit_">Do you want to exit?</string>
 </resources>

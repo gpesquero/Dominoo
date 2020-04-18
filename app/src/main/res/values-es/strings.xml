@@ -7,6 +7,8 @@
     <string name="player_name_is_too_short">El nombre del jugador es muy corto. Introduzca un nombre de jugador con al menos 4 caracteres</string>
     <string name="player_name_is_too_long">El nombre del jugador es muy largo (Longitud máxima son 20 caracteres)</string>
     <string name="player_name_has_special_char">El nombre del jugador tiene caracteres especiales. Utilice únicamente letras y números</string>
-    <string name="connecting_">Conectando...</string>
+    <string name="connecting_">Conectando…</string>
     <string name="error_while_connecting">Error al conectar al servidor</string>
+    <string name="connection_successful">Conexión con el servidor satisfactoria</string>
+    <string name="do_you_want_to_exit_">¿Quieres salir?</string>
 </resources>
