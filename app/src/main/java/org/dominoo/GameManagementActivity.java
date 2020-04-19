@@ -2,26 +2,47 @@ package org.dominoo;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 public class GameManagementActivity extends AppCompatActivity implements View.OnClickListener {
 
+    TextView mTextViewUserName;
     ImageButton mButtonExit;
+
+    private ConnectionViewModel mConnectionViewModel=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_management);
 
+        mConnectionViewModel= ViewModelProviders.of(this).get(ConnectionViewModel.class);
+
+        CustomApplication app=(CustomApplication)getApplication();
+        Session session=app.getSession();
+
+        mTextViewUserName=findViewById(R.id.textViewUserName);
+        mTextViewUserName.setText(getString(R.string.player_name_)+" "+session.mPlayerName);
+
         mButtonExit=findViewById(R.id.imageButtonExit);
         mButtonExit.setOnClickListener(this);
     }
 
+    @Override
     public void onBackPressed () {
+
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
 
     }

@@ -1,9 +1,12 @@
 package org.dominoo;
 
+import org.dominoo.Message.MsgId;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -34,22 +37,45 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     // App private shared preferences
     SharedPreferences mPrefs;
 
-    SocketStatus mSocketStatus=null;
+    ConnectionEvent mLastConnectionEvent = null;
 
-    private LoginViewModel mLoginViewModel=null;
+    private ConnectionViewModel mConnectionViewModel=null;
+
+    private Handler mTimerHandler;
+
+    private int mElapsedTime = 0;
 
     private final int MAX_TIMEOUT=10000;    // 10 seconds
+    private final int TIMER_DELAY=200;      // Timer every 200 ms
 
-    private final static String SERVER_ADDRESS="192.168.1.146";
+    private final static String SERVER_ADDRESS="192.168.1.133";
     private final static int SERVER_PORT=52301;
 
     // Create the observer which updates the UI.
-    final Observer<SocketStatus> mSocketObserver = new Observer<SocketStatus>() {
+    final Observer<ConnectionEvent> mSocketObserver = new Observer<ConnectionEvent>() {
 
         @Override
-        public void onChanged(@Nullable final SocketStatus newSocketStatus) {
+        public void onChanged(@Nullable final ConnectionEvent connectionEvent) {
 
-            onSocketStatusChanged(newSocketStatus);
+            Log.d("Prueba", "onChanged()");
+
+            onConnectionEvent(connectionEvent);
+        }
+    };
+
+    private Runnable mTimerRunnable=new Runnable() {
+
+        @Override
+        public void run() {
+
+            if (mLastConnectionEvent.getEventType() == ConnectionEvent.Type.CONNECTING) {
+
+                mElapsedTime += TIMER_DELAY;
+
+                updateControls();
+            }
+
+            mTimerHandler.postDelayed(this, TIMER_DELAY);
         }
     };
 
@@ -59,7 +85,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         setContentView(R.layout.activity_login);
 
-        mLoginViewModel=ViewModelProviders.of(this).get(LoginViewModel.class);
+        mConnectionViewModel=ViewModelProviders.of(this).get(ConnectionViewModel.class);
 
         mPrefs=getPreferences(Context.MODE_PRIVATE);
 
@@ -70,29 +96,26 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mEditTextPlayerName=findViewById(R.id.editTextPlayerName);
 
-        String playerName=mPrefs.getString(getString(R.string.key_player_name), getString(R.string.default_player_name));
+        String playerName = mPrefs.getString(getString(R.string.key_player_name), getString(R.string.default_player_name));
 
         mEditTextPlayerName.setText(playerName);
 
-        mButtonConnect=findViewById(R.id.buttonConnect);
+        mButtonConnect = findViewById(R.id.buttonConnect);
         mButtonConnect.setOnClickListener(this);
 
-        //boolean isConnecting;
-        //int progress;
+        LiveData<ConnectionEvent> ldConnectionEvent = mConnectionViewModel.attach();
 
-        LiveData<SocketStatus> ldSocketStatus=mLoginViewModel.attach();
+        if (ldConnectionEvent == null) {
 
-        if (ldSocketStatus==null) {
+            mLastConnectionEvent = new ConnectionEvent();
 
-            mSocketStatus=new SocketStatus();
-
-            mSocketStatus.mStatus=SocketStatus.Status.IDLE;
+            mLastConnectionEvent.setEventType(ConnectionEvent.Type.IDLE);
         }
         else {
 
-            mSocketStatus=ldSocketStatus.getValue();
+            mLastConnectionEvent = ldConnectionEvent.getValue();
 
-            ldSocketStatus.observe(this, mSocketObserver);
+            ldConnectionEvent.observe(this, mSocketObserver);
         }
 
         updateControls();
@@ -107,6 +130,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     protected void onDestroy() {
+
+        /*
+        if (mLoginViewModel!=null) {
+
+            mLoginViewModel.closeSocket();
+        }
+        */
+
+        if (mTimerHandler!=null) {
+
+            mTimerHandler.removeCallbacks(mTimerRunnable);
+            mTimerHandler=null;
+        }
 
         super.onDestroy();
     }
@@ -160,12 +196,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             updateControls();
 
-            LiveData<SocketStatus> ldSocket=mLoginViewModel.connectToServer(
+            LiveData<ConnectionEvent> ldSocket=mConnectionViewModel.connectToServer(
                     SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
 
-            mSocketStatus=ldSocket.getValue();
+            //mSocketStatus=ldSocket.getValue();
 
             ldSocket.observe(this, mSocketObserver);
+
+            mElapsedTime = 0;
+
+            // Launch timer for progress bar update
+            mTimerHandler=new Handler();
+            mTimerHandler.postDelayed(mTimerRunnable, TIMER_DELAY);
 
             updateControls();
         }
@@ -173,7 +215,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void updateControls() {
 
-        if (mSocketStatus.mStatus==SocketStatus.Status.CONNECTING) {
+        if (mLastConnectionEvent.getEventType() == ConnectionEvent.Type.CONNECTING) {
 
             mProgressBar.setVisibility(View.VISIBLE);
             mTextViewConnecting.setVisibility(View.VISIBLE);
@@ -181,7 +223,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             mButtonConnect.setEnabled(false);
 
             mProgressBar.setMax(MAX_TIMEOUT);
-            mProgressBar.setProgress(mSocketStatus.mElapsedTime);
+            mProgressBar.setProgress(mElapsedTime);
         }
         else {
 
@@ -192,25 +234,29 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private void onSocketStatusChanged(SocketStatus newSocketStatus)  {
+    private void onConnectionEvent(ConnectionEvent connectionEvent)  {
 
-        mSocketStatus=newSocketStatus;
+        mLastConnectionEvent = connectionEvent;
 
         String toastText=null;
 
-        switch(mSocketStatus.mStatus) {
+        boolean killTimer=false;
+
+        switch(mLastConnectionEvent.getEventType()) {
 
             case ERROR:
 
                 Log.d("Prueba", "onSocketStatusChanged() ERROR");
 
                 toastText=getString(R.string.error_while_connecting)+" ("+
-                    mSocketStatus.mSocketErrorMessage+")";
+                        mLastConnectionEvent.getEventErrorMessage()+")";
 
-                mLoginViewModel.reset(this);
+                mConnectionViewModel.reset(this);
 
-                mSocketStatus=new SocketStatus();
-                mSocketStatus.mStatus=SocketStatus.Status.IDLE;
+                mLastConnectionEvent=new ConnectionEvent();
+                mLastConnectionEvent.setEventType(ConnectionEvent.Type.IDLE);
+
+                killTimer=true;
 
                 break;
 
@@ -220,15 +266,44 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 toastText=getString(R.string.connection_successful);
 
-                Intent intent=new Intent(this, GameManagementActivity.class);
-                startActivity(intent);
+                String playerName=mEditTextPlayerName.getText().toString();
+
+                String message=CommProtocol.createMsgOpenSession(playerName);
+
+                mConnectionViewModel.sendMessage(message);
+
+                /*
+                try {
+                    PrintWriter output=new PrintWriter(mSocketStatus.mSocket.getOutputStream(),
+                            true);
+
+                    output.println("hello");
+
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+                */
+
+                killTimer=true;
 
                 break;
 
             case CONNECTING:
 
-                Log.d("Prueba", "onSocketStatusChanged() CONNECTING ("+
-                        mSocketStatus.mElapsedTime+")");
+                Log.d("Prueba", "onSocketStatusChanged() CONNECTING ("+mElapsedTime+")");
+
+                break;
+
+            case DATA_READ:
+
+                String dataRead=mLastConnectionEvent.getDataRead();
+
+                Log.d("Prueba", "onSocketStatusChanged() DATA_READ ("+dataRead+")");
+
+                Message msg=CommProtocol.processLine(dataRead);
+
+                processMessage(msg);
 
                 break;
 
@@ -236,6 +311,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 Log.d("Prueba", "onSocketStatusChanged() DEFAULT");
                 break;
+        }
+
+        if (killTimer) {
+
+            if (mTimerHandler!=null) {
+
+                mTimerHandler.removeCallbacks(mTimerRunnable);
+                mTimerHandler=null;
+            }
         }
 
         updateControls();
@@ -246,5 +330,34 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             toast.setGravity(Gravity.CENTER, 0, 0);
             toast.show();
         }
+    }
+
+    private void processMessage(Message msg) {
+
+        if (msg.mId==MsgId.SESSION_INFO) {
+
+            Session session=new Session();
+            session.mPlayerName=mEditTextPlayerName.getText().toString();
+
+            session.mPlayer0Name=msg.getArgument("player0");
+            session.mPlayer1Name=msg.getArgument("player1");
+            session.mPlayer2Name=msg.getArgument("player2");
+            session.mPlayer3Name=msg.getArgument("player3");
+
+            session.mConnection=mConnectionViewModel.getConnection();
+
+            CustomApplication app=(CustomApplication)getApplication();
+            app.setSession(session);
+
+            //mLoginViewModel.interruptSocket();
+
+            Intent intent=new Intent(this, GameManagementActivity.class);
+            startActivity(intent);
+        }
+        else {
+
+            Log.d("Prueba", "processMessage() unknown message Id="+msg.mId);
+        }
+
     }
 }
