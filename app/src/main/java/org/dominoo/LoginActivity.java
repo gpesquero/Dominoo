@@ -15,18 +15,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static android.widget.Toast.LENGTH_LONG;
-
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener,
+        CommSocket.CommSocketListener {
 
     // Controls
     ProgressBar mProgressBar;
@@ -37,43 +33,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     // App private shared preferences
     SharedPreferences mPrefs;
 
-    ConnectionEvent mLastConnectionEvent = null;
+    private LoginViewModel mLoginViewModel=null;
 
-    private ConnectionViewModel mConnectionViewModel=null;
+    private CommSocket mCommSocket = null;
 
     private Handler mTimerHandler;
-
-    private int mElapsedTime = 0;
 
     private final int MAX_TIMEOUT=10000;    // 10 seconds
     private final int TIMER_DELAY=200;      // Timer every 200 ms
 
-    private final static String SERVER_ADDRESS="192.168.1.133";
+    private final static String SERVER_ADDRESS="192.168.1.136";
     private final static int SERVER_PORT=52301;
 
+    /*
     // Create the observer which updates the UI.
-    final Observer<ConnectionEvent> mSocketObserver = new Observer<ConnectionEvent>() {
+    final Observer<CommSocketEvent> mSocketObserver = new Observer<CommSocketEvent>() {
 
         @Override
-        public void onChanged(@Nullable final ConnectionEvent connectionEvent) {
+        public void onChanged(@Nullable final CommSocketEvent connectionEvent) {
 
-            Log.d("Prueba", "onChanged()");
+            Log.d("DomLog", "onChanged()");
 
             onConnectionEvent(connectionEvent);
         }
     };
+    */
 
     private Runnable mTimerRunnable=new Runnable() {
 
         @Override
         public void run() {
 
-            if (mLastConnectionEvent.getEventType() == ConnectionEvent.Type.CONNECTING) {
+            mLoginViewModel.mElapsedTime += TIMER_DELAY;
 
-                mElapsedTime += TIMER_DELAY;
-
-                updateControls();
-            }
+            updateControls();
 
             mTimerHandler.postDelayed(this, TIMER_DELAY);
         }
@@ -85,7 +78,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         setContentView(R.layout.activity_login);
 
-        mConnectionViewModel=ViewModelProviders.of(this).get(ConnectionViewModel.class);
+        mLoginViewModel = ViewModelProviders.of(this).get(LoginViewModel.class);
 
         mPrefs=getPreferences(Context.MODE_PRIVATE);
 
@@ -103,19 +96,26 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mButtonConnect = findViewById(R.id.buttonConnect);
         mButtonConnect.setOnClickListener(this);
 
-        LiveData<ConnectionEvent> ldConnectionEvent = mConnectionViewModel.attach();
+        DominooApplication app=(DominooApplication)getApplication();
+        Session session=app.getSession();
 
-        if (ldConnectionEvent == null) {
+        mCommSocket=app.getCommSocket();
 
-            mLastConnectionEvent = new ConnectionEvent();
+        if (mCommSocket == null) {
 
-            mLastConnectionEvent.setEventType(ConnectionEvent.Type.IDLE);
+            mCommSocket = new CommSocket();
         }
-        else {
 
-            mLastConnectionEvent = ldConnectionEvent.getValue();
+        mCommSocket.setCommSocketListener(this);
 
-            ldConnectionEvent.observe(this, mSocketObserver);
+        if (mCommSocket.isConnecting()) {
+
+            startTimer();
+        }
+
+        if (session==null) {
+
+            app.createSession();
         }
 
         updateControls();
@@ -131,12 +131,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onDestroy() {
 
-        /*
-        if (mLoginViewModel!=null) {
+        DominooApplication app=(DominooApplication)getApplication();
 
-            mLoginViewModel.closeSocket();
-        }
-        */
+        mCommSocket.setCommSocketListener(null);
+
+        app.setCommSocket(mCommSocket);
 
         if (mTimerHandler!=null) {
 
@@ -194,20 +193,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             prefEditor.putString(getString(R.string.key_player_name), playerName);
             prefEditor.commit();
 
-            updateControls();
+            //updateControls();
 
+            /*
             LiveData<ConnectionEvent> ldSocket=mConnectionViewModel.connectToServer(
                     SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
 
             //mSocketStatus=ldSocket.getValue();
 
             ldSocket.observe(this, mSocketObserver);
+            */
 
-            mElapsedTime = 0;
+            mCommSocket.close();
 
-            // Launch timer for progress bar update
-            mTimerHandler=new Handler();
-            mTimerHandler.postDelayed(mTimerRunnable, TIMER_DELAY);
+            mCommSocket.connectToServer(SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
+
+            mLoginViewModel.mElapsedTime = 0;
+
+            startTimer();
 
             updateControls();
         }
@@ -215,7 +218,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void updateControls() {
 
-        if (mLastConnectionEvent.getEventType() == ConnectionEvent.Type.CONNECTING) {
+        //if (mLastConnectionEvent.getEventType() == ConnectionEvent.Type.CONNECTING) {
+
+        if (mCommSocket.isConnecting()) {
 
             mProgressBar.setVisibility(View.VISIBLE);
             mTextViewConnecting.setVisibility(View.VISIBLE);
@@ -223,7 +228,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             mButtonConnect.setEnabled(false);
 
             mProgressBar.setMax(MAX_TIMEOUT);
-            mProgressBar.setProgress(mElapsedTime);
+            mProgressBar.setProgress(mLoginViewModel.mElapsedTime);
         }
         else {
 
@@ -234,8 +239,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private void onConnectionEvent(ConnectionEvent connectionEvent)  {
+    private void onConnectionEvent(CommSocketEvent connectionEvent)  {
 
+        /*
         mLastConnectionEvent = connectionEvent;
 
         String toastText=null;
@@ -246,12 +252,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             case ERROR:
 
-                Log.d("Prueba", "onSocketStatusChanged() ERROR");
+                Log.d("DomLog", "onSocketStatusChanged() ERROR");
 
                 toastText=getString(R.string.error_while_connecting)+" ("+
                         mLastConnectionEvent.getEventErrorMessage()+")";
 
-                mConnectionViewModel.reset(this);
+                //mConnectionViewModel.reset(this);
 
                 mLastConnectionEvent=new ConnectionEvent();
                 mLastConnectionEvent.setEventType(ConnectionEvent.Type.IDLE);
@@ -262,7 +268,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             case CONNECTED:
 
-                Log.d("Prueba", "onSocketStatusChanged() CONNECTED");
+                Log.d("DomLog", "onSocketStatusChanged() CONNECTED");
 
                 toastText=getString(R.string.connection_successful);
 
@@ -270,20 +276,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 String message=CommProtocol.createMsgOpenSession(playerName);
 
-                mConnectionViewModel.sendMessage(message);
-
-                /*
-                try {
-                    PrintWriter output=new PrintWriter(mSocketStatus.mSocket.getOutputStream(),
-                            true);
-
-                    output.println("hello");
-
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-                */
+                //mConnectionViewModel.sendMessage(message);
 
                 killTimer=true;
 
@@ -291,7 +284,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             case CONNECTING:
 
-                Log.d("Prueba", "onSocketStatusChanged() CONNECTING ("+mElapsedTime+")");
+                Log.d("DomLog", "onSocketStatusChanged() CONNECTING ("+mElapsedTime+")");
 
                 break;
 
@@ -299,37 +292,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 String dataRead=mLastConnectionEvent.getDataRead();
 
-                Log.d("Prueba", "onSocketStatusChanged() DATA_READ ("+dataRead+")");
-
-                Message msg=CommProtocol.processLine(dataRead);
-
-                processMessage(msg);
+                Log.d("DomLog", "onSocketStatusChanged() DATA_READ ("+dataRead+")");
 
                 break;
 
             default:
 
-                Log.d("Prueba", "onSocketStatusChanged() DEFAULT");
+                Log.d("DomLog", "onSocketStatusChanged() DEFAULT");
                 break;
-        }
-
-        if (killTimer) {
-
-            if (mTimerHandler!=null) {
-
-                mTimerHandler.removeCallbacks(mTimerRunnable);
-                mTimerHandler=null;
-            }
         }
 
         updateControls();
 
         if (toastText!=null) {
 
-            Toast toast = Toast.makeText(this, toastText, LENGTH_LONG);
-            toast.setGravity(Gravity.CENTER, 0, 0);
-            toast.show();
+
         }
+        */
     }
 
     private void processMessage(Message msg) {
@@ -339,15 +318,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Session session=new Session();
             session.mPlayerName=mEditTextPlayerName.getText().toString();
 
-            session.mPlayer0Name=msg.getArgument("player0");
-            session.mPlayer1Name=msg.getArgument("player1");
-            session.mPlayer2Name=msg.getArgument("player2");
-            session.mPlayer3Name=msg.getArgument("player3");
+            session.mAllPlayerNames.clear();
 
-            session.mConnection=mConnectionViewModel.getConnection();
+            session.mAllPlayerNames.add(msg.getArgument("player0"));
+            session.mAllPlayerNames.add(msg.getArgument("player1"));
+            session.mAllPlayerNames.add(msg.getArgument("player2"));
+            session.mAllPlayerNames.add(msg.getArgument("player3"));
 
-            CustomApplication app=(CustomApplication)getApplication();
+            //session.mConnection=mConnectionViewModel.getConnection();
+
+            DominooApplication app=(DominooApplication)getApplication();
             app.setSession(session);
+            app.setCommSocket(mCommSocket);
 
             //mLoginViewModel.interruptSocket();
 
@@ -356,8 +338,95 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
         else {
 
-            Log.d("Prueba", "processMessage() unknown message Id="+msg.mId);
+            Log.d("DomLog", "processMessage() unknown message Id="+msg.mId);
         }
+
+    }
+
+    private void startTimer() {
+
+        // Launch timer for progress bar update
+        mTimerHandler=new Handler();
+        mTimerHandler.postDelayed(mTimerRunnable, TIMER_DELAY);
+    }
+
+    private void stopTimer() {
+
+        if (mTimerHandler!=null) {
+
+            mTimerHandler.removeCallbacks(mTimerRunnable);
+            mTimerHandler=null;
+        }
+    }
+
+    @Override
+    public void onConnectionEstablished() {
+
+        /*
+        String toastText = getString(R.string.connection_successful);
+        Toast toast = Toast.makeText(this, toastText, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
+        */
+
+        stopTimer();
+
+        updateControls();
+
+        // Request open session to server...
+        String playerName=mEditTextPlayerName.getText().toString();
+
+        String message=CommProtocol.createMsgOpenSession(playerName);
+
+        mCommSocket.sendMessage(message);
+    }
+
+    @Override
+    public void onConnectionError(String errorMessage) {
+
+        String toastText = getString(R.string.error_while_connecting)+" ("+errorMessage+")";
+
+        Toast toast = Toast.makeText(this, toastText, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
+
+        stopTimer();
+
+        updateControls();
+    }
+
+    @Override
+    public void onConnectionLost() {
+
+    }
+
+    @Override
+    public void onDataReceived(String data) {
+
+        /*
+        String toastText = "Data received: "+data;
+        Toast toast = Toast.makeText(this, toastText, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
+        */
+
+        Message msg=CommProtocol.processLine(data);
+
+        processMessage(msg);
+    }
+
+    @Override
+    public void onDataReadError(String errorMessage) {
+
+    }
+
+    @Override
+    public void onDataSent() {
+
+    }
+
+    @Override
+    public void onSocketClosed() {
 
     }
 }

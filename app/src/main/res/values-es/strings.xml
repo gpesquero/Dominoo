@@ -11,4 +11,8 @@
     <string name="error_while_connecting">Error al conectar al servidor</string>
     <string name="connection_successful">Conexión con el servidor satisfactoria</string>
     <string name="do_you_want_to_exit_">¿Quieres salir?</string>
+    <string name="partner_">Compañero:</string>
+    <string name="left_opponent_">Oponente izquierda:</string>
+    <string name="right_opponent_">Oponente derecha:</string>
+    <string name="launch_game">Lanzar partida</string>
 </resources>

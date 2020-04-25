@@ -13,6 +13,26 @@ public class CommProtocol {
         return message;
     }
 
+    public static String createMsgCloseSession(String playerName) {
+
+        String message;
+
+        message="<close_session, playerName="+playerName+">";
+
+        return message;
+    }
+
+    public static String createMsgMovePlayer(String playerName, int newPos) {
+
+        String message;
+
+        message="<move_player, playerName="+playerName+", newPos="+newPos+">";
+
+        return message;
+    }
+
+
+
     static public Message processLine(String line) {
 
         Message msg=new Message(MsgId.UNKNOWN);

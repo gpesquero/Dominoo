@@ -5,19 +5,21 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import java.io.PrintWriter;
+public class LoginViewModel extends ViewModel /*implements CommSocket.CommSocketListener*/ {
 
-public class ConnectionViewModel extends ViewModel implements Connection.ConnectionEventListener {
+    public int mElapsedTime = 0;
+
+
 
     //private SocketStatus mSocketStatus=new SocketStatus();
 
-    private Connection mConnection=null;
+    private CommSocket mConnection=null;
 
     //private Socket mSocket=null;
 
-    private MutableLiveData<ConnectionEvent> mLiveDataConnectionStatus = null;
+    private MutableLiveData<CommSocketEvent> mLiveDataConnectionStatus = null;
 
-    LiveData<ConnectionEvent> attach() {
+    LiveData<CommSocketEvent> attach() {
 
         return mLiveDataConnectionStatus;
     }
@@ -43,6 +45,7 @@ public class ConnectionViewModel extends ViewModel implements Connection.Connect
         */
     }
 
+    /*
     public LiveData<ConnectionEvent> connectToServer(String serverAddress, int serverPort,
                                                      int maxTimeout) {
 
@@ -66,7 +69,9 @@ public class ConnectionViewModel extends ViewModel implements Connection.Connect
 
         return mLiveDataConnectionStatus;
     }
+    */
 
+    /*
     public boolean sendMessage(String message) {
 
         if (mConnection == null) {
@@ -81,7 +86,9 @@ public class ConnectionViewModel extends ViewModel implements Connection.Connect
 
         return mConnection;
     }
+    */
 
+    /*
     @Override
     public void onConnectionEvent(ConnectionEvent connectionEvent) {
 
@@ -90,4 +97,42 @@ public class ConnectionViewModel extends ViewModel implements Connection.Connect
             mLiveDataConnectionStatus.postValue(connectionEvent);
         }
     }
+    */
+
+    /*
+    @Override
+    public void onConnectionEstablished() {
+
+    }
+
+    @Override
+    public void onConnectionError(String errorMessage) {
+
+    }
+
+    @Override
+    public void onConnectionLost() {
+
+    }
+
+    @Override
+    public void onDataReceived(String data) {
+
+    }
+
+    @Override
+    public void onDataReadError(String errorMessage) {
+
+    }
+
+    @Override
+    public void onDataSent() {
+
+    }
+
+    @Override
+    public void onSocketClosed() {
+
+    }
+    */
 }

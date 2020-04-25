@@ -11,4 +11,8 @@
     <string name="error_while_connecting">Error while connecting to server</string>
     <string name="connection_successful">Connection to server successful</string>
     <string name="do_you_want_to_exit_">Do you want to exit?</string>
+    <string name="partner_">Partner:</string>
+    <string name="left_opponent_">Left opponent:</string>
+    <string name="right_opponent_">Right opponent:</string>
+    <string name="launch_game">Launch game</string>
 </resources>

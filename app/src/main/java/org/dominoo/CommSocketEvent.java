@@ -2,16 +2,16 @@ package org.dominoo;
 
 import java.net.Socket;
 
-public class ConnectionEvent {
+public class CommSocketEvent {
 
     public enum Type {
 
         UNKNOWN,
         IDLE,
-        CONNECTING,
         CONNECTED,
-        ERROR,
+        CONNECT_ERROR,
         DATA_READ,
+        DATA_SENT,
         SOCKET_READ_ERROR,
         SOCKET_CLOSED
     }
@@ -24,6 +24,15 @@ public class ConnectionEvent {
 
     //private int mElapsedTime=0;
     //private int mMaxTimeout=0;
+
+    public CommSocketEvent() {
+
+    }
+
+    public CommSocketEvent(Type eventType) {
+
+        setEventType(eventType);
+    }
 
     void setEventType(Type eventType) {
 
@@ -54,5 +63,4 @@ public class ConnectionEvent {
 
         return mDataRead;
     }
-
 }
