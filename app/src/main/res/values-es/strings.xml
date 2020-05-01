@@ -21,4 +21,6 @@
     <string name="server_port_">Puerto servidor:</string>
     <string name="allow_launch_games">Permitir lanzar partidas</string>
     <string name="reset_default_values">Establecer valores por defecto</string>
+    <string name="invalid_port_number">Número de puerto incorrecto</string>
+    <string name="invalid_server_addr">Dirección del servidor no válida</string>
 </resources>

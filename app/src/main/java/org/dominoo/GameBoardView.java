@@ -17,7 +17,7 @@ public class GameBoardView extends View {
 
     private static final int TEXT_SIZE = 20;
 
-    private static final float TILE_SIZE_SCALE_FACTOR = 8;
+    private static final float TILE_SIZE_SCALE_FACTOR = 7;
 
     private Game.PlayerPos mTurnPlayer = Game.PlayerPos.NONE;
 

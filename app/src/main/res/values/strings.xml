@@ -24,4 +24,6 @@
     <string name="server_port_">Server port:</string>
     <string name="allow_launch_games">Allow launch games</string>
     <string name="reset_default_values">Reset to default values</string>
+    <string name="invalid_port_number">Invalid port number</string>
+    <string name="invalid_server_addr">Invalid server address</string>
 </resources>

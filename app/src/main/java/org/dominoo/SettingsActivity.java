@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 //import android.support.v7.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,17 +47,40 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
             mEditTextServerAddress.setText(mApp.DEFAULT_SERVER_ADDRESS);
 
-            mEditTextServerAddress.setText(Integer.toString(mApp.DEFAULT_SERVER_PORT));
+            mEditTextServerPort.setText(Integer.toString(mApp.DEFAULT_SERVER_PORT));
 
             mCheckboxAllowLaunchGames.setEnabled(false);
         }
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onBackPressed() {
+
+        String serverAddr = mEditTextServerAddress.getText().toString();
+
+        if (serverAddr.isEmpty()) {
+
+            Toast.makeText(this, R.string.invalid_server_addr, Toast.LENGTH_LONG).show();
+
+            return;
+        }
+
+        mApp.mServerAddr = serverAddr;
+
+        try {
+
+            mApp.mServerPort = Integer.parseInt(mEditTextServerPort.getText().toString());
+        }
+        catch (NumberFormatException e) {
+
+            Toast.makeText(this, R.string.invalid_port_number, Toast.LENGTH_LONG).show();
+
+            return;
+        }
 
         mApp.mAllowLaunchGames = mCheckboxAllowLaunchGames.isChecked();
+
+        super.onBackPressed();
     }
 }
 
