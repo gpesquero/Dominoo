@@ -15,4 +15,10 @@
     <string name="left_opponent_">Oponente izquierda:</string>
     <string name="right_opponent_">Oponente derecha:</string>
     <string name="launch_game">Lanzar partida</string>
+    <string name="version_">Versión:</string>
+    <string name="settings">Ajustes</string>
+    <string name="server_addr_">Dir. servidor:</string>
+    <string name="server_port_">Puerto servidor:</string>
+    <string name="allow_launch_games">Permitir lanzar partidas</string>
+    <string name="reset_default_values">Establecer valores por defecto</string>
 </resources>

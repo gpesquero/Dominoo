@@ -7,7 +7,11 @@ public class Message {
     public enum MsgId {
 
         UNKNOWN,
-        SESSION_INFO
+        GAME_INFO,
+        GAME_TILE_INFO,
+        PLAYER_TILE_INFO,
+        BOARD_TILE_INFO1,
+        BOARD_TILE_INFO2
     };
 
     public MsgId mId=MsgId.UNKNOWN;

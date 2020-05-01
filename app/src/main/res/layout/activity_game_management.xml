@@ -9,13 +9,46 @@
     tools:context=".GameManagementActivity">
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/textViewAppName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:gravity="center"
         android:text="@string/app_name"
         android:textSize="64sp"/>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text=""
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/textViewPartner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="60dp"
+        android:layout_marginRight="60dp"
+        android:layout_weight="0"
+        android:gravity="center"
+        android:text="@string/partner_"
+        android:textSize="24sp" />
+
+    <org.dominoo.DropdownButton
+        android:id="@+id/dropdownButtonPartner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="60dp"
+        android:layout_marginRight="60dp"
+        android:layout_weight="0"
+        android:background="#009688"
+        android:drawableLeft="@android:drawable/arrow_down_float"
+        android:drawableStart="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:text="" />
 
     <TextView
         android:id="@+id/textView2"
@@ -26,27 +59,62 @@
         android:textSize="24sp" />
 
     <TextView
+        android:id="@+id/textViewLeftOpponent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:gravity="center"
+        android:text="@string/left_opponent_"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="110dp"
+        android:textSize="24sp" />
+
+    <org.dominoo.DropdownButton
+        android:id="@+id/dropdownButtonOpponentLeft"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="110dp"
+        android:layout_weight="0"
+        android:background="#009688"
+        android:drawableLeft="@android:drawable/arrow_down_float"
+        android:drawableStart="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:text="" />
+
+    <TextView
         android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:background="#009688"
-        android:gravity="center"
-        android:text="@string/partner_"
-        android:layout_marginLeft="60dp"
-        android:layout_marginRight="60dp"
+        android:layout_weight="1"
+        android:text=""
         android:textSize="24sp" />
 
-    <Spinner
-        android:id="@+id/spinnerPartner"
+    <TextView
+        android:id="@+id/textViewRightOpponent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="60dp"
-        android:layout_marginRight="60dp"
         android:layout_weight="0"
-        android:dropDownWidth="wrap_content"
-        android:minWidth="200dp"
-        android:spinnerMode="dropdown" />
+        android:gravity="center"
+        android:text="@string/right_opponent_"
+        android:layout_marginLeft="110dp"
+        android:layout_marginRight="10dp"
+        android:textSize="24sp" />
+
+    <org.dominoo.DropdownButton
+        android:id="@+id/dropdownButtonOpponentRight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="110dp"
+        android:layout_marginRight="10dp"
+        android:layout_weight="0"
+        android:background="#009688"
+        android:drawableLeft="@android:drawable/arrow_down_float"
+        android:drawableStart="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:text="" />
 
     <TextView
         android:id="@+id/textView4"
@@ -57,73 +125,10 @@
         android:textSize="24sp" />
 
     <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/textViewPlayerName__"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:background="#009688"
-        android:gravity="center"
-        android:text="@string/left_opponent_"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="110dp"
-        android:textSize="24sp" />
-
-    <Spinner
-        android:id="@+id/spinnerOpponentLeft"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="110dp"
-        android:layout_weight="0"
-        android:dropDownWidth="wrap_content"
-        android:minWidth="200dp"
-        android:spinnerMode="dropdown" />
-
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text=""
-        android:textSize="24sp" />
-
-    <TextView
-        android:id="@+id/textView7"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:background="#009688"
-        android:gravity="center"
-        android:text="@string/right_opponent_"
-        android:layout_marginLeft="110dp"
-        android:layout_marginRight="10dp"
-        android:textSize="24sp" />
-
-    <Spinner
-        android:id="@+id/spinnerOpponentRight"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="110dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:dropDownWidth="wrap_content"
-        android:minWidth="200dp"
-        android:spinnerMode="dropdown" />
-
-    <TextView
-        android:id="@+id/textView8"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text=""
-        android:textSize="24sp" />
-
-    <TextView
-        android:id="@+id/textView9"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:background="#009688"
         android:gravity="center"
         android:text="@string/player_name_"
         android:layout_marginLeft="60dp"
@@ -131,15 +136,17 @@
         android:textSize="24sp" />
 
     <TextView
-        android:id="@+id/textViewUserName"
+        android:id="@+id/textViewPlayerName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:gravity="center"
-        android:text="TextView"
         android:layout_marginLeft="60dp"
         android:layout_marginRight="60dp"
-        android:textSize="24sp" />
+        android:layout_weight="0"
+        android:background="#009688"
+        android:gravity="center"
+        android:padding="10sp"
+        android:text="TextView"
+        android:textSize="22sp" />
 
     <TextView
         android:id="@+id/textView10"

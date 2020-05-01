@@ -4,20 +4,20 @@ import org.dominoo.Message.MsgId;
 
 public class CommProtocol {
 
-    public static String createMsgOpenSession(String playerName) {
+    public static String createMsgLogin(String playerName) {
 
         String message;
 
-        message="<open_session, playerName="+playerName+">";
+        message="<login, playerName="+playerName+">";
 
         return message;
     }
 
-    public static String createMsgCloseSession(String playerName) {
+    public static String createMsgLogout(String playerName) {
 
         String message;
 
-        message="<close_session, playerName="+playerName+">";
+        message="<logout, playerName="+playerName+">";
 
         return message;
     }
@@ -31,7 +31,23 @@ public class CommProtocol {
         return message;
     }
 
+    public static String createMsgLaunchGame(String playerName) {
 
+        String message;
+
+        message="<launch_game, playerName="+playerName+">";
+
+        return message;
+    }
+
+    public static String createMsgRequestTileInfo(String playerName) {
+
+        String message;
+
+        message="<request_tile_info, playerName="+playerName+">";
+
+        return message;
+    }
 
     static public Message processLine(String line) {
 
@@ -130,9 +146,25 @@ public class CommProtocol {
             }
         }
 
-        if (command.compareTo("session_info")==0) {
+        if (command.compareTo("game_info")==0) {
 
-            msg.mId=MsgId.SESSION_INFO;
+            msg.mId=MsgId.GAME_INFO;
+        }
+        else if (command.compareTo("game_tile_info")==0) {
+
+            msg.mId=MsgId.GAME_TILE_INFO;
+        }
+        else if (command.compareTo("player_tile_info")==0) {
+
+            msg.mId=MsgId.PLAYER_TILE_INFO;
+        }
+        else if (command.compareTo("board_tile_info1")==0) {
+
+            msg.mId=MsgId.BOARD_TILE_INFO1;
+        }
+        else if (command.compareTo("board_tile_info2")==0) {
+
+            msg.mId=MsgId.BOARD_TILE_INFO2;
         }
         else {
 

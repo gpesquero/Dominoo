@@ -62,6 +62,22 @@ public class CommSocket {
         setCommSocketListener(listener);
     }
 
+    public CommSocketListener getCommSocketListener() {
+
+        CommSocketListener listener;
+
+        if (mCommSocketListenerTask == null) {
+
+            listener = null;
+        }
+        else {
+
+            listener = mCommSocketListenerTask.mListener;
+        }
+
+        return listener;
+    }
+
     public void setCommSocketListener(CommSocketListener listener) {
 
         if (mCommSocketListenerTask != null) {
@@ -521,14 +537,14 @@ public class CommSocket {
 
                 case DATA_READ:
 
-                    Log.i("DomLog", "commEvent: DATA READ");
+                    //Log.i("DomLog", "commEvent: DATA READ");
 
                     mListener.onDataReceived(events[0].getDataRead());
                     break;
 
                 case DATA_SENT:
 
-                    Log.i("DomLog", "commEvent: DATA SENT");
+                    //Log.i("DomLog", "commEvent: DATA SENT");
 
                     mListener.onDataSent();
                     break;

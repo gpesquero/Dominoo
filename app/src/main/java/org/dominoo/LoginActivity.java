@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         CommSocket.CommSocketListener {
 
     // Controls
+    ImageView mImageViewSettings;
+    TextView mTextViewVersion;
     ProgressBar mProgressBar;
     TextView mTextViewConnecting;
     TextView mEditTextPlayerName;
@@ -35,15 +38,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private LoginViewModel mLoginViewModel=null;
 
-    private CommSocket mCommSocket = null;
+    //private CommSocket mCommSocket = null;
+
+    private DominooApplication mApp = null;
 
     private Handler mTimerHandler;
 
     private final int MAX_TIMEOUT=10000;    // 10 seconds
     private final int TIMER_DELAY=200;      // Timer every 200 ms
-
-    private final static String SERVER_ADDRESS="192.168.1.136";
-    private final static int SERVER_PORT=52301;
 
     /*
     // Create the observer which updates the UI.
@@ -82,6 +84,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mPrefs=getPreferences(Context.MODE_PRIVATE);
 
+        mImageViewSettings=findViewById(R.id.imageViewSettings);
+        mImageViewSettings.setOnClickListener(this);
+
+        mTextViewVersion=findViewById(R.id.textViewVersion);
+
         mProgressBar=findViewById(R.id.progressBar);
         mProgressBar.setMax(MAX_TIMEOUT);
 
@@ -96,26 +103,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mButtonConnect = findViewById(R.id.buttonConnect);
         mButtonConnect.setOnClickListener(this);
 
-        DominooApplication app=(DominooApplication)getApplication();
-        Session session=app.getSession();
+        mApp = (DominooApplication)getApplication();
 
-        mCommSocket=app.getCommSocket();
+        mApp.loadPreferences(this, mPrefs);
 
-        if (mCommSocket == null) {
+        String versionString = getString(R.string.version_);
+        versionString += String.format(" %d.%02d", mApp.VERSION_MAJOR, mApp.VERSION_MINOR);
+        mTextViewVersion.setText(versionString);
 
-            mCommSocket = new CommSocket();
+        //Session session=app.getSession();
+
+        //mApp.mCommSocket=app.getCommSocket();
+
+        if (mApp.mCommSocket == null) {
+
+            mApp.mCommSocket = new CommSocket();
         }
 
-        mCommSocket.setCommSocketListener(this);
+        mApp.mCommSocket.setCommSocketListener(this);
 
-        if (mCommSocket.isConnecting()) {
+        if (mApp.mCommSocket.isConnecting()) {
 
             startTimer();
         }
 
-        if (session==null) {
+        if (mApp.mGame == null) {
 
-            app.createSession();
+            mApp.createGame();
         }
 
         updateControls();
@@ -129,19 +143,44 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mApp.mCommSocket != null) {
+
+            if (mApp.mCommSocket.getCommSocketListener() != this) {
+
+                mApp.mCommSocket.setCommSocketListener(this);
+            }
+        }
+    }
+
+    @Override
     protected void onDestroy() {
 
-        DominooApplication app=(DominooApplication)getApplication();
+        //DominooApplication app=(DominooApplication)getApplication();
 
-        mCommSocket.setCommSocketListener(null);
+        if (mApp.mCommSocket != null) {
 
-        app.setCommSocket(mCommSocket);
+            mApp.mCommSocket.setCommSocketListener(null);
+        }
+
+        mApp.setCommSocket(mApp.mCommSocket);
 
         if (mTimerHandler!=null) {
 
             mTimerHandler.removeCallbacks(mTimerRunnable);
             mTimerHandler=null;
         }
+
+        // Store mApp preferences
+
+        SharedPreferences.Editor prefEditor=mPrefs.edit();
+        prefEditor.putString(getString(R.string.key_server_address), mApp.mServerAddr);
+        prefEditor.putInt(getString(R.string.key_server_port), mApp.mServerPort);
+        prefEditor.putBoolean(getString(R.string.key_allow_launch_games), mApp.mAllowLaunchGames);
+        prefEditor.commit();
+
 
         super.onDestroy();
     }
@@ -204,9 +243,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             ldSocket.observe(this, mSocketObserver);
             */
 
-            mCommSocket.close();
+            if (mApp.mCommSocket == null) {
 
-            mCommSocket.connectToServer(SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
+                mApp.mCommSocket = new CommSocket();
+            }
+            else {
+
+                mApp.mCommSocket.close();
+            }
+
+            if (mApp.mCommSocket.getCommSocketListener() != this) {
+
+                mApp.mCommSocket.setCommSocketListener(this);
+            }
+
+            //mApp.mCommSocket.connectToServer(SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
+
+            mApp.mCommSocket.connectToServer(mApp.mServerAddr, mApp.mServerPort, MAX_TIMEOUT);
 
             mLoginViewModel.mElapsedTime = 0;
 
@@ -214,13 +267,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             updateControls();
         }
+        else if (view==mImageViewSettings) {
+
+            Intent intent=new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        }
     }
 
     private void updateControls() {
 
-        //if (mLastConnectionEvent.getEventType() == ConnectionEvent.Type.CONNECTING) {
-
-        if (mCommSocket.isConnecting()) {
+        if (mApp.mCommSocket.isConnecting()) {
 
             mProgressBar.setVisibility(View.VISIBLE);
             mTextViewConnecting.setVisibility(View.VISIBLE);
@@ -239,9 +295,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /*
     private void onConnectionEvent(CommSocketEvent connectionEvent)  {
 
-        /*
         mLastConnectionEvent = connectionEvent;
 
         String toastText=null;
@@ -308,39 +364,65 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
         }
-        */
     }
+    */
 
     private void processMessage(Message msg) {
 
-        if (msg.mId==MsgId.SESSION_INFO) {
+        if (msg.mId==MsgId.GAME_INFO) {
 
-            Session session=new Session();
-            session.mPlayerName=mEditTextPlayerName.getText().toString();
+            Game game=new Game();
+            game.mPlayerName=mEditTextPlayerName.getText().toString();
 
-            session.mAllPlayerNames.clear();
+            String statusText=msg.getArgument("status");
 
-            session.mAllPlayerNames.add(msg.getArgument("player0"));
-            session.mAllPlayerNames.add(msg.getArgument("player1"));
-            session.mAllPlayerNames.add(msg.getArgument("player2"));
-            session.mAllPlayerNames.add(msg.getArgument("player3"));
+            if (statusText == null) {
+
+                game.mStatus= Game.Status.NOT_STARTED;
+            }
+            else if (statusText.compareTo("notStarted")==0) {
+
+                game.mStatus= Game.Status.NOT_STARTED;
+            }
+            else if (statusText.compareTo("running")==0) {
+
+                game.mStatus= Game.Status.RUNNING;
+            }
+            else {
+
+                game.mStatus= Game.Status.NOT_STARTED;
+            }
+
+            game.mAllPlayerNames.clear();
+
+            game.mAllPlayerNames.add(msg.getArgument("player0"));
+            game.mAllPlayerNames.add(msg.getArgument("player1"));
+            game.mAllPlayerNames.add(msg.getArgument("player2"));
+            game.mAllPlayerNames.add(msg.getArgument("player3"));
 
             //session.mConnection=mConnectionViewModel.getConnection();
 
             DominooApplication app=(DominooApplication)getApplication();
-            app.setSession(session);
-            app.setCommSocket(mCommSocket);
+            app.setGame(game);
+            app.setCommSocket(mApp.mCommSocket);
 
             //mLoginViewModel.interruptSocket();
 
-            Intent intent=new Intent(this, GameManagementActivity.class);
-            startActivity(intent);
+            if (game.mStatus == Game.Status.NOT_STARTED) {
+
+                Intent intent = new Intent(this, GameManagementActivity.class);
+                startActivity(intent);
+            }
+            else {
+
+                Intent intent = new Intent(this, GameBoardActivity.class);
+                startActivity(intent);
+            }
         }
         else {
 
-            Log.d("DomLog", "processMessage() unknown message Id="+msg.mId);
+            Log.d("DomLog", "LoginActivity.processMessage() unknown message Id="+msg.mId);
         }
-
     }
 
     private void startTimer() {
@@ -376,9 +458,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Request open session to server...
         String playerName=mEditTextPlayerName.getText().toString();
 
-        String message=CommProtocol.createMsgOpenSession(playerName);
+        String message=CommProtocol.createMsgLogin(playerName);
 
-        mCommSocket.sendMessage(message);
+        mApp.mCommSocket.sendMessage(message);
     }
 
     @Override

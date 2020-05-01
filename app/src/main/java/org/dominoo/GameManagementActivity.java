@@ -4,69 +4,63 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class GameManagementActivity extends AppCompatActivity implements View.OnClickListener,
-        AdapterView.OnItemSelectedListener, CommSocket.CommSocketListener {
+        CommSocket.CommSocketListener, DropdownButton.OnSelectionChangedListener {
 
     TextView mTextViewUserName;
+
+    Button mButtonLaunchGame;
+
     ImageButton mButtonExit;
 
-    Spinner mSpinnerPartner;
-    Spinner mSpinnerOpponentLeft;
-    Spinner mSpinnerOpponentRight;
+    DropdownButton mDropdownButtonPartner;
+    DropdownButton mDropdownButtonOpponentRight;
+    DropdownButton mDropdownButtonOpponentLeft;
 
-    ArrayAdapter<String> mSpinnerAdapter = null;
-
-    private Session mSession = null;
-
-    private int mSpinnerEventCount = 3;
-
-    private CommSocket mCommSocket = null;
+    DominooApplication mApp = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_management);
 
-        DominooApplication app=(DominooApplication)getApplication();
-        mSession=app.getSession();
+        mApp = (DominooApplication)getApplication();
 
-        mCommSocket=app.getCommSocket();
+        if (mApp.mCommSocket == null) {
 
-        if (mCommSocket == null) {
-
-            mCommSocket = new CommSocket();
+            mApp.mCommSocket = new CommSocket();
         }
 
-        mCommSocket.setCommSocketListener(this);
+        mApp.mCommSocket.setCommSocketListener(this);
 
-        String[] otherPlayers = mSession.getOtherPlayers();
+        mDropdownButtonPartner = findViewById(R.id.dropdownButtonPartner);
+        mDropdownButtonPartner.setOnSelectionChangedListener(this);
 
-        mSpinnerAdapter = new ArrayAdapter<String>(this,
-                R.layout.spinner_item, R.id.textview, otherPlayers);
+        mDropdownButtonOpponentRight = findViewById(R.id.dropdownButtonOpponentRight);
+        mDropdownButtonOpponentRight.setOnSelectionChangedListener(this);
 
-        mSpinnerPartner=findViewById(R.id.spinnerPartner);
-        mSpinnerPartner.setAdapter(mSpinnerAdapter);
-        mSpinnerPartner.setOnItemSelectedListener(this);
+        mDropdownButtonOpponentLeft = findViewById(R.id.dropdownButtonOpponentLeft);
+        mDropdownButtonOpponentLeft.setOnSelectionChangedListener(this);
 
-        mSpinnerOpponentLeft=findViewById(R.id.spinnerOpponentLeft);
-        mSpinnerOpponentLeft.setAdapter(mSpinnerAdapter);
-        mSpinnerOpponentLeft.setOnItemSelectedListener(this);
+        mTextViewUserName=findViewById(R.id.textViewPlayerName);
+        mTextViewUserName.setText(mApp.mGame.mPlayerName);
 
-        mSpinnerOpponentRight=findViewById(R.id.spinnerOpponentRight);
-        mSpinnerOpponentRight.setAdapter(mSpinnerAdapter);
-        mSpinnerOpponentRight.setOnItemSelectedListener(this);
-
-        mTextViewUserName=findViewById(R.id.textViewUserName);
-        mTextViewUserName.setText(mSession.mPlayerName);
+        mButtonLaunchGame=findViewById(R.id.buttonLaunchGame);
+        mButtonLaunchGame.setOnClickListener(this);
 
         mButtonExit=findViewById(R.id.imageButtonExit);
         mButtonExit.setOnClickListener(this);
@@ -88,55 +82,72 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
     @Override
     public void onClick(View view) {
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        if (view == mButtonExit) {
 
-        // set dialog message
-        alertDialogBuilder
-                .setMessage(R.string.do_you_want_to_exit_)
-                .setCancelable(false)
-                .setPositiveButton(android.R.string.yes,new DialogInterface.OnClickListener() {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
-                    public void onClick(DialogInterface dialog, int id) {
-                        // if this button is clicked, close
-                        // current activity
+            // set dialog message
+            alertDialogBuilder
+                    .setMessage(R.string.do_you_want_to_exit_)
+                    .setCancelable(false)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-                        sendCloseSession();
-                    }
-                })
-                .setNegativeButton(android.R.string.no,new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // if this button is clicked, just close
-                        // the dialog box and do nothing
-                        dialog.cancel();
-                    }
-                });
+                        public void onClick(DialogInterface dialog, int id) {
+                            // if this button is clicked, close
+                            // current activity
 
-        // Create alert dialog
-        AlertDialog alertDialog = alertDialogBuilder.create();
+                            sendLogoutMessage();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // if this button is clicked, just close
+                            // the dialog box and do nothing
+                            dialog.cancel();
+                        }
+                    });
 
-        // Show it
-        alertDialog.show();
+            // Create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            // Show it
+            alertDialog.show();
+        }
+        else if (view == mButtonLaunchGame) {
+
+            sendLaunchGameMessage();
+        }
     }
 
-    void sendCloseSession() {
+    void sendLogoutMessage() {
 
-        // Create <Close Session> message
-        String msg = CommProtocol.createMsgCloseSession(mSession.mPlayerName);
+        // Create <Logout> message
+        String msg = CommProtocol.createMsgLogout(mApp.mGame.mPlayerName);
 
         // Send the message to the server
-        mCommSocket.sendMessage(msg);
+        mApp.mCommSocket.sendMessage(msg);
+    }
+
+    void sendLaunchGameMessage() {
+
+        // Create <Launch Game> message
+        String msg = CommProtocol.createMsgLaunchGame(mApp.mGame.mPlayerName);
+
+        // Send the message to the server
+        mApp.mCommSocket.sendMessage(msg);
     }
 
     private void closeActivity() {
 
-        DominooApplication app=(DominooApplication)getApplication();
+        //DominooApplication app=(DominooApplication)getApplication();
 
-        mSession = null;
-        app.setSession(null);
+        mApp.mGame = null;
+        mApp.setGame(null);
 
-        mCommSocket.close();
-        mCommSocket = null;
-        app.setCommSocket(null);
+        mApp.mCommSocket.close();
+        mApp.mCommSocket.setCommSocketListener(null);
+        mApp.mCommSocket = null;
+        mApp.setCommSocket(null);
 
         // Finish the activity
         finish();
@@ -146,81 +157,38 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
         int pos;
 
-        int playerPos = mSession.mAllPlayerNames.indexOf(mSession.mPlayerName);
+        //int playerPos = mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName);
 
-        int partnerPos = (playerPos + 2) % 4;
-        pos = mSpinnerAdapter.getPosition(mSession.mAllPlayerNames.get(partnerPos));
-        mSpinnerPartner.setSelection(pos);
+        ArrayList<String> otherPlayers = mApp.mGame.getOtherPlayers();
 
-        int leftOpponentPos = (playerPos + 3) % 4;
-        pos = mSpinnerAdapter.getPosition(mSession.mAllPlayerNames.get(leftOpponentPos));
-        mSpinnerOpponentLeft.setSelection(pos);
+        //int partnerPos = (playerPos + 2) % 4;
+        mDropdownButtonPartner.setItemsList(otherPlayers);
+        //mDropdownButtonPartner.setSelection(mApp.mGame.mAllPlayerNames.get(partnerPos));
+        mDropdownButtonPartner.setSelection(mApp.mGame.getPartnerName());
 
-        int rightOpponentPos = (playerPos + 1) % 4;
-        pos = mSpinnerAdapter.getPosition(mSession.mAllPlayerNames.get(rightOpponentPos));
-        mSpinnerOpponentRight.setSelection(pos);
-    }
+        //int leftOpponentPos = (playerPos + 3) % 4;
+        mDropdownButtonOpponentLeft.setItemsList(otherPlayers);
+        //mDropdownButtonOpponentLeft.setSelection(mApp.mGame.mAllPlayerNames.get(leftOpponentPos));
+        mDropdownButtonOpponentLeft.setSelection(mApp.mGame.getLeftOpponentName());
 
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        //int rightOpponentPos = (playerPos + 1) % 4;
+        mDropdownButtonOpponentRight.setItemsList(otherPlayers);
+        //mDropdownButtonOpponentRight.setSelection(mApp.mGame.mAllPlayerNames.get(rightOpponentPos));
+        mDropdownButtonOpponentRight.setSelection(mApp.mGame.getRightOpponentName());
 
-        if (mSpinnerEventCount != 0) {
-
-            mSpinnerEventCount--;
-            return;
-        }
-
-        int playerPos = mSession.mAllPlayerNames.indexOf(mSession.mPlayerName);
-
-        int delta;
-
-        String selectedName;
-
-        if (parent == mSpinnerOpponentRight) {
-
-            delta = 1;
-            selectedName = (String) mSpinnerOpponentRight.getSelectedItem();
-        }
-        else if (parent == mSpinnerPartner) {
-
-            delta = 2;
-            selectedName = (String) mSpinnerPartner.getSelectedItem();
-        }
-        else if (parent == mSpinnerOpponentLeft) {
-
-            delta = 3;
-            selectedName = (String) mSpinnerOpponentLeft.getSelectedItem();
-        }
-        else {
-
-            return;
-        }
-
-        int index = (playerPos + delta) % 4;
-
-        String msg = CommProtocol.createMsgMovePlayer(selectedName, index);
-
-        mCommSocket.sendMessage(msg);
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
+        mButtonLaunchGame.setEnabled(mApp.mAllowLaunchGames);
     }
 
     @Override
     public void onConnectionEstablished() {
-
     }
 
     @Override
     public void onConnectionError(String errorMessage) {
-
     }
 
     @Override
     public void onConnectionLost() {
-
     }
 
     @Override
@@ -235,50 +203,111 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
         Message msg=CommProtocol.processLine(data);
 
         processMessage(msg);
-
     }
 
     @Override
     public void onDataReadError(String errorMessage) {
-
     }
 
     @Override
     public void onDataSent() {
-
     }
 
     @Override
     public void onSocketClosed() {
-
     }
 
     private void processMessage(Message msg) {
 
-        if (msg.mId == Message.MsgId.SESSION_INFO) {
+        if (msg.mId == Message.MsgId.GAME_INFO) {
 
-            Log.i("DomLog", "GameManagementActivity. Received Session Info Message");
+            Log.i("DomLog", "GameManagementActivity. Received Game Info Message");
 
-            mSession.mAllPlayerNames.clear();
+            mApp.mGame.mAllPlayerNames.clear();
 
-            mSession.mAllPlayerNames.add(msg.getArgument("player0"));
-            mSession.mAllPlayerNames.add(msg.getArgument("player1"));
-            mSession.mAllPlayerNames.add(msg.getArgument("player2"));
-            mSession.mAllPlayerNames.add(msg.getArgument("player3"));
+            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player0"));
+            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player1"));
+            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player2"));
+            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player3"));
 
-            if (mSession.mAllPlayerNames.indexOf(mSession.mPlayerName) <0 ) {
+            String statusText=msg.getArgument("status");
+
+            if (statusText == null) {
+
+                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
+            }
+            else if (statusText.compareTo("notStarted")==0) {
+
+                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
+            }
+            else if (statusText.compareTo("running")==0) {
+
+                mApp.mGame.mStatus= Game.Status.RUNNING;
+            }
+            else {
+
+                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
+            }
+
+            if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName) <0 ) {
 
                 // We have not found our player name in the player list
-                Log.i("DomLog", "Player name not found in palyer list. Close Activity");
+                Log.i("DomLog", "Player name not found in player list. Close Activity");
 
                 // We have to close the Activity
                 closeActivity();
             }
             else {
 
+                if (mApp.mGame.mStatus == Game.Status.RUNNING) {
+
+                    Intent intent=new Intent(this, GameBoardActivity.class);
+                    startActivity(intent);
+                }
+
                 // Update UI control
                 updateControls();
             }
         }
+        else {
+
+            Log.d("DomLog", "GameManagementActivity.processMessage() unknown message Id="+msg.mId);
+        }
+    }
+
+    @Override
+    public void onSelectionChanged(View view, int position, String selectedItemText) {
+
+        int playerPos = mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName);
+
+        int delta;
+
+        String selectedName;
+
+        if (view == mDropdownButtonOpponentRight) {
+
+            delta = 1;
+            selectedName = mDropdownButtonOpponentRight.getSelectedItemText();
+        }
+        else if (view == mDropdownButtonPartner) {
+
+            delta = 2;
+            selectedName = mDropdownButtonPartner.getSelectedItemText();
+        }
+        else if (view == mDropdownButtonOpponentLeft) {
+
+            delta = 3;
+            selectedName = mDropdownButtonOpponentLeft.getSelectedItemText();
+        }
+        else {
+
+            return;
+        }
+
+        int index = (playerPos + delta) % 4;
+
+        String msg = CommProtocol.createMsgMovePlayer(selectedName, index);
+
+        mApp.mCommSocket.sendMessage(msg);
     }
 }
