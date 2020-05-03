@@ -47,6 +47,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private final int MAX_TIMEOUT=10000;    // 10 seconds
     private final int TIMER_DELAY=200;      // Timer every 200 ms
 
+    private final int PLAYER_NAME_MIN_LENGTH = 4;
+    private final int PLAYER_NAME_MAX_LENGTH = 6;
+
     /*
     // Create the observer which updates the UI.
     final Observer<CommSocketEvent> mSocketObserver = new Observer<CommSocketEvent>() {
@@ -194,7 +197,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             playerName=playerName.trim();
 
-            if (playerName.length()<4) {
+            if (playerName.length()<PLAYER_NAME_MIN_LENGTH) {
 
                 Toast toast=Toast.makeText(this, R.string.player_name_is_too_short,
                         Toast.LENGTH_SHORT);
@@ -204,7 +207,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 return;
             }
 
-            if (playerName.length()>20) {
+            if (playerName.length() > PLAYER_NAME_MAX_LENGTH) {
 
                 Toast toast=Toast.makeText(this, R.string.player_name_is_too_long,
                         Toast.LENGTH_SHORT);
@@ -372,7 +375,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (msg.mId==MsgId.GAME_INFO) {
 
             Game game=new Game();
-            game.mPlayerName=mEditTextPlayerName.getText().toString();
+
+            game.mMyPlayerName=mEditTextPlayerName.getText().toString();
 
             String statusText=msg.getArgument("status");
 

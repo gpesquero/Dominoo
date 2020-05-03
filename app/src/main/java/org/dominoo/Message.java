@@ -11,7 +11,8 @@ public class Message {
         GAME_TILE_INFO,
         PLAYER_TILE_INFO,
         BOARD_TILE_INFO1,
-        BOARD_TILE_INFO2
+        BOARD_TILE_INFO2,
+        ROUND_INFO
     };
 
     public MsgId mId=MsgId.UNKNOWN;

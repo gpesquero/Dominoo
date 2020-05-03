@@ -57,7 +57,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
         mDropdownButtonOpponentLeft.setOnSelectionChangedListener(this);
 
         mTextViewUserName=findViewById(R.id.textViewPlayerName);
-        mTextViewUserName.setText(mApp.mGame.mPlayerName);
+        mTextViewUserName.setText(mApp.mGame.mMyPlayerName);
 
         mButtonLaunchGame=findViewById(R.id.buttonLaunchGame);
         mButtonLaunchGame.setOnClickListener(this);
@@ -122,7 +122,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
     void sendLogoutMessage() {
 
         // Create <Logout> message
-        String msg = CommProtocol.createMsgLogout(mApp.mGame.mPlayerName);
+        String msg = CommProtocol.createMsgLogout(mApp.mGame.mMyPlayerName);
 
         // Send the message to the server
         mApp.mCommSocket.sendMessage(msg);
@@ -131,7 +131,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
     void sendLaunchGameMessage() {
 
         // Create <Launch Game> message
-        String msg = CommProtocol.createMsgLaunchGame(mApp.mGame.mPlayerName);
+        String msg = CommProtocol.createMsgLaunchGame(mApp.mGame.mMyPlayerName);
 
         // Send the message to the server
         mApp.mCommSocket.sendMessage(msg);
@@ -249,7 +249,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
                 mApp.mGame.mStatus= Game.Status.NOT_STARTED;
             }
 
-            if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName) <0 ) {
+            if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mMyPlayerName) <0 ) {
 
                 // We have not found our player name in the player list
                 Log.i("DomLog", "Player name not found in player list. Close Activity");
@@ -278,7 +278,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
     @Override
     public void onSelectionChanged(View view, int position, String selectedItemText) {
 
-        int playerPos = mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName);
+        int playerPos = mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mMyPlayerName);
 
         int delta;
 

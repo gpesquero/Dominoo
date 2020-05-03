@@ -1,24 +1,40 @@
 package org.dominoo;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class GameBoardActivity extends AppCompatActivity implements CommSocket.CommSocketListener,
-    PlayerTilesView.OnTileSelectedListener {
+    PlayerTilesView.OnTileSelectedListener, GameBoardView.OnTilePlayedListener,
+        View.OnClickListener {
 
     DominooApplication mApp = null;
 
     GameBoardView mGameBoardView;
     PlayerTilesView mPlayerTilesView;
 
-    private int mTurnPlayer = -1;
+    TextView mTextViewPlayer0Name;
+    TextView mTextViewPlayer1Name;
+    TextView mTextViewPlayer2Name;
+    TextView mTextViewPlayer3Name;
+
+    TextView mTextViewPair1Points;
+    TextView mTextViewPair2Points;
+
+    Button mButtonPassTurn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +51,25 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         mApp.mCommSocket.setCommSocketListener(this);
 
         mGameBoardView = findViewById(R.id.viewGameBoard);
+        mGameBoardView.setOnTilePlayedListener(this);
 
         mPlayerTilesView = findViewById(R.id.viewPlayerTiles);
         mPlayerTilesView.setOnTileSelectedListener(this);
 
+        mTextViewPlayer0Name = findViewById(R.id.textViewPlayer0Name);
+        mTextViewPlayer1Name = findViewById(R.id.textViewPlayer1Name);
+        mTextViewPlayer2Name = findViewById(R.id.textViewPlayer2Name);
+        mTextViewPlayer3Name = findViewById(R.id.textViewPlayer3Name);
+
+        mTextViewPair1Points = findViewById(R.id.textViewPair1Points);
+        mTextViewPair2Points = findViewById(R.id.textViewPair2Points);
+
+        mButtonPassTurn = findViewById(R.id.buttonPassTurn);
+        mButtonPassTurn.setOnClickListener(this);
+        mButtonPassTurn.setEnabled(false);
+
+        mTextViewPair1Points.setOnClickListener(this);
+        mTextViewPair2Points.setOnClickListener(this);
 
         updateControls();
 
@@ -60,20 +91,34 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
     private void updateControls() {
 
-        mGameBoardView.setTurnPlayer(Game.PlayerPos.PLAYER);
+        mGameBoardView.setTurnPlayer(mApp.mGame.mTurnPlayerPos);
 
-        mGameBoardView.setPlayerName(mApp.mGame.mPlayerName);
+        mGameBoardView.setHandPlayer(mApp.mGame.mHandPlayerPos);
+
+        mGameBoardView.setPlayerName(mApp.mGame.mMyPlayerName);
         mGameBoardView.setPartnerName(mApp.mGame.getPartnerName());
         mGameBoardView.setLeftOpponentName(mApp.mGame.getLeftOpponentName());
         mGameBoardView.setRightOpponentName(mApp.mGame.getRightOpponentName());
 
         mGameBoardView.invalidate();
+
+        mPlayerTilesView.invalidate();
+
+        mTextViewPlayer0Name.setText(mApp.mGame.getPlayerName(0));
+        mTextViewPlayer1Name.setText(mApp.mGame.getPlayerName(1));
+        mTextViewPlayer2Name.setText(mApp.mGame.getPlayerName(2));
+        mTextViewPlayer3Name.setText(mApp.mGame.getPlayerName(3));
+
+        mTextViewPair1Points.setText(getString(R.string.x_points, mApp.mGame.getPair1Points()));
+        mTextViewPair2Points.setText(getString(R.string.x_points, mApp.mGame.getPair2Points()));
+
+        checkPassTurnButton();
     }
 
     private void requestTileInfo() {
 
         // Create <Request Tile Info> message
-        String msg = CommProtocol.createMsgRequestTileInfo(mApp.mGame.mPlayerName);
+        String msg = CommProtocol.createMsgRequestTileInfo(mApp.mGame.mMyPlayerName);
 
         // Send the message to the server
         mApp.mCommSocket.sendMessage(msg);
@@ -137,7 +182,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             Log.i("DomLog", "GameManagementActivity. Received Game Info Message");
 
-            /*
             mApp.mGame.mAllPlayerNames.clear();
 
             mApp.mGame.mAllPlayerNames.add(msg.getArgument("player0"));
@@ -164,34 +208,46 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
                 mApp.mGame.mStatus= Game.Status.NOT_STARTED;
             }
 
-            if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName) <0 ) {
+            if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mMyPlayerName) < 0 ) {
 
                 // We have not found our player name in the player list
                 Log.i("DomLog", "Player name not found in player list. Close Activity");
 
                 // We have to close the Activity
-                closeActivity();
+                //closeActivity();
             }
             else {
 
+                /*
                 if (mApp.mGame.mStatus == Game.Status.RUNNING) {
 
                     Intent intent=new Intent(this, GameBoardActivity.class);
                     startActivity(intent);
                 }
+                */
+
+                mApp.mGame.mPair1Points = Integer.parseInt(msg.getArgument("pair1Points"));
+                mApp.mGame.mPair2Points = Integer.parseInt(msg.getArgument("pair2Points"));
 
                 // Update UI control
                 updateControls();
             }
-            */
         }
         else if (msg.mId == Message.MsgId.GAME_TILE_INFO) {
 
-            mTurnPlayer = Integer.parseInt(msg.getArgument("turnPlayer"));
+            int turnPlayerPos = Integer.parseInt(msg.getArgument("turnPlayer"));
 
-            Game.PlayerPos playerPosition = mApp.mGame.getPlayerPosition(mTurnPlayer);
+            mApp.mGame.mTurnPlayerPos = mApp.mGame.getPlayerPosition(turnPlayerPos);
 
-            mGameBoardView.setTurnPlayer(playerPosition);
+            mGameBoardView.setTurnPlayer(mApp.mGame.mTurnPlayerPos);
+
+            mPlayerTilesView.setTurnPlayer(mApp.mGame.mTurnPlayerPos);
+
+            int handPlayerPos = Integer.parseInt(msg.getArgument("handPlayer"));
+
+            mApp.mGame.mHandPlayerPos = mApp.mGame.getPlayerPosition(handPlayerPos);
+
+            mGameBoardView.setHandPlayer(mApp.mGame.mHandPlayerPos);
 
             for (int i=0; i<Game.MAX_PLAYERS; i++) {
 
@@ -208,14 +264,17 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
                     case PARTNER:
                         mGameBoardView.setPartnerTileCount(playerTileCount);
+                        mGameBoardView.clearHighlights();
                         break;
 
                     case LEFT_OPPONENT:
                         mGameBoardView.setLeftOpponentTileCount(playerTileCount);
+                        mGameBoardView.clearHighlights();
                         break;
 
                     case RIGHT_OPPONENT:
                         mGameBoardView.setRightOpponentTileCount(playerTileCount);
+                        mGameBoardView.clearHighlights();
                         break;
 
                     default:
@@ -225,7 +284,7 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             }
 
-            mGameBoardView.invalidate();
+            updateControls();
         }
         else if (msg.mId == Message.MsgId.PLAYER_TILE_INFO) {
 
@@ -260,7 +319,7 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             mPlayerTilesView.setTiles(mApp.mGame.mPlayerTiles);
 
-            mPlayerTilesView.invalidate();
+            updateControls();
         }
         else if (msg.mId == Message.MsgId.BOARD_TILE_INFO1) {
 
@@ -314,7 +373,89 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             mGameBoardView.setBoardTiles2(mApp.mGame.mBoardTiles2);
 
-            mGameBoardView.invalidate();
+            updateControls();
+        }
+        else if (msg.mId == Message.MsgId.ROUND_INFO) {
+
+            int roundCount = Integer.parseInt(msg.getArgument("roundCount"));
+
+            if (mApp.mGame.mRoundCount != roundCount) {
+
+                mApp.mGame.mRoundCount = roundCount;
+
+                /*
+                String text = getString(R.string.starting_round_x_, roundCount);
+
+                Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER,0, 0);
+                toast.show();
+                */
+            }
+
+            String roundStatus = msg.getArgument("status");
+
+            String alertString = null;
+            String titleString = null;
+
+            if (roundStatus.compareTo("won") == 0) {
+
+                int winnerPlayerPos = Integer.parseInt(msg.getArgument("winnerPlayerPos"));
+
+                mApp.mGame.mPlayerPoints[0] = Integer.parseInt(msg.getArgument("player0Points"));
+                mApp.mGame.mPlayerPoints[1] = Integer.parseInt(msg.getArgument("player1Points"));
+                mApp.mGame.mPlayerPoints[2] = Integer.parseInt(msg.getArgument("player2Points"));
+                mApp.mGame.mPlayerPoints[3] = Integer.parseInt(msg.getArgument("player3Points"));
+
+                alertString = createGameWonMessage(winnerPlayerPos);
+
+                titleString = getString(R.string.round_finished);
+            }
+            else if (roundStatus.compareTo("closed") == 0) {
+
+                int closerPlayerPos = Integer.parseInt(msg.getArgument("closerPlayerPos"));
+
+                mApp.mGame.mPlayerPoints[0] = Integer.parseInt(msg.getArgument("player0Points"));
+                mApp.mGame.mPlayerPoints[1] = Integer.parseInt(msg.getArgument("player1Points"));
+                mApp.mGame.mPlayerPoints[2] = Integer.parseInt(msg.getArgument("player2Points"));
+                mApp.mGame.mPlayerPoints[3] = Integer.parseInt(msg.getArgument("player3Points"));
+
+                alertString = createGameClosedMessage(closerPlayerPos);
+
+                titleString = getString(R.string.round_closed);
+            }
+
+            if (alertString != null) {
+
+                AlertDialog.Builder alertDialogBuilder = null;
+
+                alertDialogBuilder = new AlertDialog.Builder(this);
+
+                alertDialogBuilder
+                        .setTitle(titleString)
+                        .setMessage(alertString)
+                        .setCancelable(false)
+                        .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+                            public void onClick(DialogInterface dialog, int id) {
+
+                                dialog.cancel();
+
+                                requestTileInfo();
+                            }
+                        });
+
+                // Create alert dialog
+                AlertDialog alertDialog = alertDialogBuilder.create();
+
+                // Show it
+                alertDialog.show();
+            }
+
+
+            //status=won, winnerPlayerPos=3, player0Points=5, player1Points=6, player2Points=6, player3Points=0
+
+
+
         }
         else {
 
@@ -325,8 +466,357 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
     @Override
     public void onTileSelected(DominoTile selectedTile) {
 
+        /*
+        Log.i("DomLog", "onTileSelected() Tile: "+selectedTile.mNumber1+"-"+
+                selectedTile.mNumber2);
+        */
+
         mGameBoardView.onTileSelected(selectedTile, mApp.mGame.mForceDouble6Tile);
 
         mGameBoardView.invalidate();
+    }
+
+    @Override
+    public void onTilePlayed(DominoTile tile, int boardSide) {
+
+        Log.i("DomLog", "onTilePlayed() Tile: "+tile.mNumber1+"-"+
+                tile.mNumber2+", boardSide="+boardSide);
+
+        String msg = CommProtocol.createMsgPlayTile(mApp.mGame.mMyPlayerName,
+                mApp.mGame.getMyPlayerPos(), tile, boardSide);
+
+        mApp.mCommSocket.sendMessage(msg);
+
+        if (!mApp.mGame.removeTile(tile.mNumber1, tile.mNumber2)) {
+
+            Log.e("DomLog", "removeTile(): Tile not found");
+        }
+
+        updateControls();
+    }
+
+    private void checkPassTurnButton() {
+
+        int endNumber1 = mApp.mGame.getEndNumber1();
+
+        int endNumber2 = mApp.mGame.getEndNumber2();
+
+        boolean activatePassTurn = true;
+
+        if (mApp.mGame.mPlayerTiles == null) {
+
+            activatePassTurn = false;
+        }
+        else if (mApp.mGame.mTurnPlayerPos != Game.PlayerPos.PLAYER) {
+
+            activatePassTurn = false;
+        }
+        else if (endNumber1 < 0) {
+
+            activatePassTurn = false;
+        }
+        else if (endNumber2 < 0) {
+
+            activatePassTurn = false;
+        }
+        else {
+
+            Iterator<DominoTile> iter = mApp.mGame.mPlayerTiles.iterator();
+
+            while (iter.hasNext()) {
+
+                DominoTile tile = iter.next();
+
+                if (tile.contains(endNumber1)) {
+
+                    activatePassTurn = false;
+
+                    break;
+                }
+
+                if (tile.contains(endNumber2)) {
+
+                    activatePassTurn = false;
+
+                    break;
+                }
+            }
+        }
+
+        if (activatePassTurn) {
+
+            mButtonPassTurn.setEnabled(true);
+            mButtonPassTurn.setText(R.string.pass_turn);
+            mButtonPassTurn.setTextColor(Color.YELLOW);
+        }
+        else {
+
+            mButtonPassTurn.setEnabled(false);
+            mButtonPassTurn.setText("");
+            mButtonPassTurn.setTextColor(Color.WHITE);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        if (v == mButtonPassTurn) {
+
+            Log.i("DomLog", "Pass turn");
+
+            String msg = CommProtocol.createMsgPlayTile(mApp.mGame.mMyPlayerName,
+                    mApp.mGame.getMyPlayerPos(), null, 0);
+
+            mApp.mCommSocket.sendMessage(msg);
+
+            mPlayerTilesView.clearSelection();
+
+            mGameBoardView.clearHighlights();
+
+            updateControls();
+        }
+        else if (v == mTextViewPair1Points) {
+
+            String alertString = createGameWonMessage(0);
+
+            AlertDialog.Builder alertDialogBuilder = null;
+
+            alertDialogBuilder = new AlertDialog.Builder(this);
+
+            alertDialogBuilder
+                    .setTitle("Round finished")
+                    .setMessage(alertString)
+                    .setCancelable(false)
+                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int id) {
+
+                            dialog.cancel();
+                        }
+                    });
+
+            // Create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            // Show it
+            alertDialog.show();
+        }
+        else if (v == mTextViewPair2Points) {
+
+            String alertString = createGameClosedMessage(0);
+
+            AlertDialog.Builder alertDialogBuilder = null;
+
+            alertDialogBuilder = new AlertDialog.Builder(this);
+
+            alertDialogBuilder
+                    .setTitle("Round closed")
+                    .setMessage(alertString)
+                    .setCancelable(false)
+                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int id) {
+
+                            dialog.cancel();
+                        }
+                    });
+
+            // Create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            // Show it
+            alertDialog.show();
+        }
+    }
+
+    private String createGameWonMessage(int winnerPlayerPos) {
+
+        int playerPoints[] = mApp.mGame.mPlayerPoints;
+        int totalPoints =   playerPoints[0] + playerPoints[1] +
+                            playerPoints[2] + playerPoints[3];
+
+        int addingPoints = (totalPoints-1) / 10 +1;
+
+        int winningPair = (winnerPlayerPos % 2) +1;
+
+        String winnerName = mApp.mGame.getPlayerName(winnerPlayerPos);
+
+        String text = getString(R.string.player_has_won, winnerName);
+
+        text += "\n\n";
+
+        text += getString(R.string.total_remaining_points_)+" ";
+
+        text += getString(R.string.x_points, totalPoints)+ " (+"+addingPoints+")";
+
+        text += "\n";
+
+        text += "(";
+        text += mApp.mGame.getPlayerName(0)+"="+playerPoints[0]+", ";
+        text += mApp.mGame.getPlayerName(1)+"="+playerPoints[1]+", ";
+        text += mApp.mGame.getPlayerName(2)+"="+playerPoints[2]+", ";
+        text += mApp.mGame.getPlayerName(3)+"="+playerPoints[3];
+        text += ")";
+
+        text += "\n\n";
+
+        text += getString(R.string.pair_1)+" ("+mApp.mGame.mAllPlayerNames.get(0)+"+"+
+                mApp.mGame.mAllPlayerNames.get(2)+"): ";
+
+        if (winningPair == 1) {
+
+            int finalPair1Points = mApp.mGame.mPair1Points + addingPoints;
+
+            text += String.valueOf(mApp.mGame.mPair1Points)+" + "+addingPoints+" = "+
+                    getString(R.string.x_points, finalPair1Points);
+
+            //mApp.mGame.mPair1Points += addingPoints;
+        }
+        else {
+
+            text += getString(R.string.x_points, mApp.mGame.mPair1Points);
+        }
+
+        text += "\n";
+
+        text += getString(R.string.pair_2)+" ("+mApp.mGame.mAllPlayerNames.get(1)+"+"+
+                mApp.mGame.mAllPlayerNames.get(3)+"): ";
+
+        if (winningPair == 2) {
+
+            int finalPair2Points = mApp.mGame.mPair2Points + addingPoints;
+
+            text += String.valueOf(mApp.mGame.mPair2Points)+" + "+addingPoints+" = "+
+                    getString(R.string.x_points, finalPair2Points);
+
+            //mApp.mGame.mPair2Points += addingPoints;
+        }
+        else {
+
+            text += getString(R.string.x_points, mApp.mGame.mPair2Points);
+        }
+
+        text += "\n";
+
+        return text;
+    }
+
+    private String createGameClosedMessage(int closerPlayerPos) {
+
+        int playerPoints[] = mApp.mGame.mPlayerPoints;
+
+        int pair1Points = playerPoints[0] + playerPoints[2];
+
+        int pair2Points = playerPoints[1] + playerPoints[3];
+
+        int totalPoints = pair1Points + pair2Points;
+
+        int addingPoints = (totalPoints-1) / 10 +1;
+
+        int winningPair;
+
+        if (pair1Points < pair2Points) {
+
+            winningPair = 1;
+        }
+        else if (pair2Points < pair1Points) {
+
+            winningPair = 2;
+        }
+        else {
+
+            // pair1Points == pair2Points
+
+            // The winner is the hand...
+
+            Game.PlayerPos handPos = mApp.mGame.mHandPlayerPos;
+
+            int handPosIndex = mApp.mGame.getPlayerPosIndex(handPos);
+
+            if ((handPosIndex == 0) || (handPosIndex == 2)) {
+
+                // The winner is pair 1...
+
+                winningPair = 1;
+            }
+            else {
+
+                winningPair = 2;
+            }
+        }
+
+        String closerName = mApp.mGame.getPlayerName(closerPlayerPos);
+
+        String text = getString(R.string.player_has_closed, closerName);
+
+        text += "\n\n";
+
+        text += getString(R.string.pair_1)+": "+mApp.mGame.mAllPlayerNames.get(0)+" ("+
+                playerPoints[0]+") + "+mApp.mGame.mAllPlayerNames.get(2)+" ("+
+                playerPoints[2]+") = "+getString(R.string.x_points, pair1Points);
+
+        text += "\n";
+
+        text += getString(R.string.pair_2)+": "+mApp.mGame.mAllPlayerNames.get(1)+" ("+
+                playerPoints[1]+") + "+mApp.mGame.mAllPlayerNames.get(3)+" ("+
+                playerPoints[3]+") = "+getString(R.string.x_points, pair2Points);
+
+        text += "\n";
+
+        text += getString(R.string.total_remaining_points_)+" "+
+                getString(R.string.x_points, totalPoints)+ " (+"+addingPoints+")";
+
+        text += "\n";
+
+        text += getString(R.string.winner_is_pair_x, winningPair);
+
+        if (pair1Points == pair2Points) {
+
+            text += "\n";
+
+            text += getString(R.string.in_case_of_tie_hand_wins);
+        }
+
+        text += "\n\n";
+
+        text += getString(R.string.pair_1)+" ("+mApp.mGame.mAllPlayerNames.get(0)+"+"+
+                mApp.mGame.mAllPlayerNames.get(2)+"): ";
+
+        if (winningPair == 1) {
+
+            int finalPair1Points = mApp.mGame.mPair1Points + addingPoints;
+
+            text += String.valueOf(mApp.mGame.mPair1Points)+" + "+addingPoints+" = "+
+                    getString(R.string.x_points, finalPair1Points);
+
+            //mApp.mGame.mPair1Points += addingPoints;
+        }
+        else {
+
+            text += getString(R.string.x_points, mApp.mGame.mPair1Points);
+        }
+
+        text += "\n";
+
+        text += getString(R.string.pair_2)+" ("+mApp.mGame.mAllPlayerNames.get(1)+"+"+
+                mApp.mGame.mAllPlayerNames.get(3)+"): ";
+
+        if (winningPair == 2) {
+
+            int finalPair2Points = mApp.mGame.mPair2Points + addingPoints;
+
+            text += String.valueOf(mApp.mGame.mPair2Points)+" + "+addingPoints+" = "+
+                    getString(R.string.x_points, finalPair2Points);
+
+            //mApp.mGame.mPair2Points += addingPoints;
+        }
+        else {
+
+            text += getString(R.string.x_points, mApp.mGame.mPair2Points);
+        }
+
+        text += "\n";
+
+        return text;
     }
 }

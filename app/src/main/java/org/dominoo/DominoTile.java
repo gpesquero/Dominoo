@@ -20,7 +20,7 @@ public class DominoTile implements Comparable<DominoTile> {
         mNumber2 = number2;
     }
 
-    public void drawTile(Canvas canvas, RectF tileRect, int tileColor) {
+    public void drawTile(Canvas canvas, RectF tileRect, int tileColor, boolean swapNumbers) {
 
         Paint fillPaint=new Paint();
         fillPaint.setStyle(Paint.Style.FILL);
@@ -87,7 +87,18 @@ public class DominoTile implements Comparable<DominoTile> {
 
         fillPaint.setColor(Color.BLACK);
 
-        drawDots(canvas, mNumber1, number1Rect, horizontal, fillPaint);
+        int pos1Number;
+
+        if (swapNumbers) {
+
+            pos1Number = mNumber2;
+        }
+        else {
+
+            pos1Number = mNumber1;
+        }
+
+        drawDots(canvas, pos1Number, number1Rect, horizontal, fillPaint);
 
         RectF number2Rect;
 
@@ -102,7 +113,18 @@ public class DominoTile implements Comparable<DominoTile> {
                     tileRect.right, tileRect.bottom);
         }
 
-        drawDots(canvas, mNumber2, number2Rect, horizontal, fillPaint);
+        int pos2Number;
+
+        if (swapNumbers) {
+
+            pos2Number = mNumber1;
+        }
+        else {
+
+            pos2Number = mNumber2;
+        }
+
+        drawDots(canvas, pos2Number, number2Rect, horizontal, fillPaint);
     }
 
     private void drawDots(Canvas canvas, int number, RectF rect, boolean horizontal,
@@ -246,5 +268,20 @@ public class DominoTile implements Comparable<DominoTile> {
     public boolean isDouble() {
 
         return (mNumber1 == mNumber2);
+    }
+
+    public boolean contains(int mNumber) {
+
+        if (mNumber1 == mNumber) {
+
+            return true;
+        }
+
+        if (mNumber2 == mNumber) {
+
+            return true;
+        }
+
+        return false;
     }
 }

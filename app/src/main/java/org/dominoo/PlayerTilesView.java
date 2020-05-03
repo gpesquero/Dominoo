@@ -25,7 +25,9 @@ public class PlayerTilesView extends View {
     private float mTileWidth;
     private float mTileHeight;
 
-    int mClickedTile = -1;
+    int mSelectedTile = -1;
+
+    private Game.PlayerPos mTurnPlayerPos = Game.PlayerPos.NONE;
 
     OnTileSelectedListener mListener = null;
 
@@ -53,15 +55,13 @@ public class PlayerTilesView extends View {
 
         mTiles = tiles;
 
-        mClickedTile = -1;
+        mSelectedTile = -1;
     }
 
     public void setOnTileSelectedListener(OnTileSelectedListener listener) {
 
         mListener = listener;
     }
-
-
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -70,6 +70,13 @@ public class PlayerTilesView extends View {
         RectF borderRect = drawBorder(canvas);
 
         mTileHeight = calculateTileSize(borderRect);
+
+        if (mTurnPlayerPos != Game.PlayerPos.PLAYER) {
+
+            // No tile selected if it's not the PLAYER's turn
+
+            mSelectedTile = -1;
+        }
 
         drawTiles(canvas, borderRect, mTileHeight);
     }
@@ -144,24 +151,24 @@ public class PlayerTilesView extends View {
 
             int tileColor = Color.WHITE;
 
-            if (mClickedTile == tile) {
+            if (mSelectedTile == tile) {
 
                 tileColor = Color.YELLOW;
             }
 
-            mTiles.get(tile).drawTile(canvas, tileRect, tileColor);
+            mTiles.get(tile).drawTile(canvas, tileRect, tileColor, false);
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        int x = (int) event.getX();
-        int y = (int) event.getY();
+        float x = event.getX();
+        float y = event.getY();
 
         if (x < mOffsetX) {
 
-            mClickedTile = -1;
+            mSelectedTile = -1;
 
             invalidate();
 
@@ -174,7 +181,7 @@ public class PlayerTilesView extends View {
 
         if (x > rightX) {
 
-            mClickedTile = -1;
+            mSelectedTile = -1;
 
             invalidate();
 
@@ -183,14 +190,14 @@ public class PlayerTilesView extends View {
 
         //int index = Math.round((x-mOffsetX)/(rightX-mOffsetX)*(tileCount-1));
 
-        mClickedTile = (int)Math.floor((x-mOffsetX)/(rightX-mOffsetX)*(tileCount));
+        mSelectedTile = (int)Math.floor((x-mOffsetX)/(rightX-mOffsetX)*(tileCount));
 
-        if (mClickedTile == tileCount) {
+        if (mSelectedTile == tileCount) {
 
-            mClickedTile = tileCount-1;
+            mSelectedTile = tileCount-1;
         }
 
-        DominoTile clickedTile = mTiles.get(mClickedTile);
+        DominoTile clickedTile = mTiles.get(mSelectedTile);
 
         if (mListener != null) {
 
@@ -207,5 +214,15 @@ public class PlayerTilesView extends View {
         invalidate();
 
         return false;
+    }
+
+    public void clearSelection() {
+
+        mSelectedTile = -1;
+    }
+
+    public void setTurnPlayer(Game.PlayerPos turnPlayerPos) {
+
+        mTurnPlayerPos = turnPlayerPos;
     }
 }

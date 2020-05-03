@@ -49,6 +49,30 @@ public class CommProtocol {
         return message;
     }
 
+    public static String createMsgPlayTile(String playerName, int playerPos,
+                                           DominoTile tile, int boardSide) {
+
+        String tileString;
+
+        if (tile == null) {
+
+            tileString = null;
+        }
+        else {
+
+            tileString = String.valueOf(tile.mNumber1)+"-"+tile.mNumber2;
+        }
+
+        String message;
+
+        message="<play_tile, playerName="+playerName+", playerPos="+playerPos+
+                ", tile="+tileString+", boardSide="+boardSide+">";
+
+        return message;
+    }
+
+
+
     static public Message processLine(String line) {
 
         Message msg=new Message(MsgId.UNKNOWN);
@@ -165,6 +189,10 @@ public class CommProtocol {
         else if (command.compareTo("board_tile_info2")==0) {
 
             msg.mId=MsgId.BOARD_TILE_INFO2;
+        }
+        else if (command.compareTo("round_info")==0) {
+
+            msg.mId=MsgId.ROUND_INFO;
         }
         else {
 

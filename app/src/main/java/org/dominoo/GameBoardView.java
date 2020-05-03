@@ -4,9 +4,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public class GameBoardView extends View {
     private static final float TILE_SIZE_SCALE_FACTOR = 7;
 
     private Game.PlayerPos mTurnPlayer = Game.PlayerPos.NONE;
+    private Game.PlayerPos mHandPlayer = Game.PlayerPos.NONE;
 
     private String mPlayerName = null;
     private String mPartnerName = null;
@@ -38,6 +41,28 @@ public class GameBoardView extends View {
 
     private boolean mHighlightNextBoardTile1 = false;
     private boolean mHighlightNextBoardTile2 = false;
+
+    private RectF mTileLimits = null;
+
+    private float mOffsetY = 0;
+
+    OnTilePlayedListener mListener = null;
+
+    DominoTile mSelectedTile = null;
+
+    DominoTile mDummyTile = new DominoTile(1 ,2);
+
+    enum Dir {
+        LEFT,
+        RIGHT,
+        UP,
+        DOWN
+    }
+
+    public interface OnTilePlayedListener {
+
+        void onTilePlayed(DominoTile selectedTile, int boardSide);
+    }
 
     public GameBoardView(Context context) {
         super(context);
@@ -64,6 +89,8 @@ public class GameBoardView extends View {
 
         float tileSize = calculateTileSize(borderRect);
 
+        calculateTileLimits(canvas, borderRect, tileSize);
+
         drawPlayerTiles(canvas, borderRect, tileSize);
 
         drawBoardTiles1(canvas, borderRect, tileSize);
@@ -76,6 +103,49 @@ public class GameBoardView extends View {
     private float calculateTileSize(RectF borderRect) {
 
         return borderRect.height()/TILE_SIZE_SCALE_FACTOR;
+    }
+
+    private void calculateTileLimits(Canvas canvas, RectF borderRect, float tileLength) {
+
+        mOffsetY = tileLength/4;
+
+        mTileLimits = new RectF();
+
+        float horLimit = borderRect.width()/3;
+
+        mTileLimits.left = borderRect.centerX()-horLimit;
+
+        mTileLimits.right = borderRect.centerX()+horLimit;
+
+        float verLimit = borderRect.height()/8;
+
+        mTileLimits.top = borderRect.centerY()+mOffsetY-verLimit;
+        mTileLimits.bottom = borderRect.centerY()+mOffsetY+verLimit;
+
+        /*
+        // Draw limit lines
+
+        Paint paint=new Paint();
+
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeWidth(3);
+        paint.setColor(Color.YELLOW);
+
+        // Draw left tile limit line
+        canvas.drawLine(mTileLimits.left, 0, mTileLimits.left, borderRect.bottom, paint);
+
+        // Draw right tile limit line
+        canvas.drawLine(mTileLimits.right, 0, mTileLimits.right, borderRect.bottom, paint);
+
+        // Draw bottom tile limit line
+        canvas.drawLine(0, mTileLimits.bottom, borderRect.right, mTileLimits.bottom, paint);
+
+        // Draw top tile limit line
+        canvas.drawLine(0, mTileLimits.top, borderRect.right, mTileLimits.top, paint);
+
+        */
     }
 
     private RectF drawBorder(Canvas canvas) {
@@ -96,10 +166,16 @@ public class GameBoardView extends View {
         //canvas.drawRect(borderRect, paint);
 
         /*
+
+        // Draw reference lines
+
         paint.setColor(Color.YELLOW);
+
+        // Draw horizontal center line
         canvas.drawLine(borderRect.left, borderRect.centerY(),
                 borderRect.right, borderRect.centerY(), paint);
 
+        // Draw vertical center line
         canvas.drawLine(borderRect.centerX(), borderRect.top,
                 borderRect.centerX(), borderRect.bottom, paint);
         */
@@ -108,6 +184,8 @@ public class GameBoardView extends View {
     }
 
     private void drawPlayerNames(Canvas canvas, RectF borderRect) {
+
+        String handString = new String("\uD83D\uDC4B");
 
         Paint textPaint = new Paint();
 
@@ -148,6 +226,11 @@ public class GameBoardView extends View {
 
         text = "["+mPlayerName+"]";
 
+        if (mHandPlayer == Game.PlayerPos.PLAYER) {
+
+            text += handString;
+        }
+
         x = borderRect.width()/2;
         y = borderRect.bottom-2-textHeight+textOffset;
 
@@ -168,6 +251,11 @@ public class GameBoardView extends View {
         textPaint.setTextAlign(Paint.Align.RIGHT);
 
         text = "["+mPartnerName+"]";
+
+        if (mHandPlayer == Game.PlayerPos.PARTNER) {
+
+            text += handString;
+        }
 
         x = borderRect.width()/3;
         y = borderRect.top+2+textOffset;
@@ -190,6 +278,11 @@ public class GameBoardView extends View {
 
         text = "["+mLeftOpponentName+"]";
 
+        if (mHandPlayer == Game.PlayerPos.LEFT_OPPONENT) {
+
+            text += handString;
+        }
+
         x = borderRect.left+2;
         y = borderRect.bottom-2-textHeight+textOffset;
 
@@ -211,6 +304,11 @@ public class GameBoardView extends View {
 
         text = "["+mRightOpponentName+"]";
 
+        if (mHandPlayer == Game.PlayerPos.RIGHT_OPPONENT) {
+
+            text += handString;
+        }
+
         x = borderRect.right-4;
         y = borderRect.bottom-2-textHeight+textOffset;
 
@@ -220,12 +318,12 @@ public class GameBoardView extends View {
             textPaint.setTypeface(boldTypeface);
         }
         else {
+
             textPaint.setColor(Color.WHITE);
             textPaint.setTypeface(normalTypeface);
         }
 
         canvas.drawText(text, x, y, textPaint);
-
     }
 
     private void drawPlayerTiles(Canvas canvas, RectF borderRect, float tileSize) {
@@ -307,6 +405,11 @@ public class GameBoardView extends View {
         mTurnPlayer = turnPlayer;
     }
 
+    public void setHandPlayer(Game.PlayerPos handPlayer) {
+
+        mHandPlayer = handPlayer;
+    }
+
     public void setPlayerName(String playerName) {
 
         mPlayerName = playerName;
@@ -354,6 +457,8 @@ public class GameBoardView extends View {
 
     public void onTileSelected(DominoTile selectedTile, boolean forceDouble6Tile) {
 
+        mSelectedTile = selectedTile;
+
         if (mBoardTiles1 == null)
             return;
 
@@ -367,12 +472,11 @@ public class GameBoardView extends View {
 
             if (forceDouble6Tile) {
 
-                if ((selectedTile.mNumber1 == 6) && (selectedTile.mNumber2 == 6)) {
+                if ((mSelectedTile.mNumber1 == 6) && (mSelectedTile.mNumber2 == 6)) {
 
                     // Only the Double 6 tile can be placed in the first position
                     mHighlightNextBoardTile1 = true;
                 }
-
             }
             else {
 
@@ -384,66 +488,409 @@ public class GameBoardView extends View {
 
             // Check if we can highlight next tile of board 1
 
+            DominoTile endTile1 = mBoardTiles1.get(mBoardTiles1.size()-1);
 
+            int endNumber1 = endTile1.mNumber2;
 
+            if (mSelectedTile.contains(endNumber1)) {
 
-
+                mHighlightNextBoardTile1 = true;
+            }
 
             // Check if we can highlight next tile of board 2
 
+            int endNumber2;
 
+            if (mBoardTiles2.size() == 0) {
+
+                DominoTile beginTile1 = mBoardTiles1.get(0);
+
+                endNumber2 = beginTile1.mNumber1;
+            }
+            else {
+
+                DominoTile endTile2 = mBoardTiles2.get(mBoardTiles2.size()-1);
+
+                endNumber2 = endTile2.mNumber2;
+            }
+
+            if (mSelectedTile.contains(endNumber2)) {
+
+                mHighlightNextBoardTile2 = true;
+            }
         }
     }
 
     private void drawBoardTiles1(Canvas canvas, RectF borderRect, float tileLength) {
 
-        float offsetX = borderRect.centerX();
-        float offsetY = borderRect.centerY();
+        /*
+        mBoardTiles1.clear();
+        mBoardTiles1.add(new DominoTile(6, 6));
+        mBoardTiles1.add(new DominoTile(6, 0));
+        mBoardTiles1.add(new DominoTile(0, 1));
+        mBoardTiles1.add(new DominoTile(1, 2));
+        mBoardTiles1.add(new DominoTile(2, 2));
+        mBoardTiles1.add(new DominoTile(2, 3));
+        mBoardTiles1.add(new DominoTile(3, 3));
+        mBoardTiles1.add(new DominoTile(3, 4));
+        //mBoardTiles1.add(new DominoTile(4, 4));
+        mBoardTiles1.add(new DominoTile(4, 5));
+        mBoardTiles1.add(new DominoTile(5, 5));
+        mBoardTiles1.add(new DominoTile(5, 6));
+        mBoardTiles1.add(new DominoTile(6, 1));
+        */
 
-        float left, right, top, bottom;
+        // Starting direction is to the right...
+        Dir dir = Dir.RIGHT;
 
-        for(int i=0; i<mBoardTiles1.size(); i++) {
+        // Initial position is border center...
+        PointF pos = new PointF(borderRect.centerX(), borderRect.centerY());
 
-            DominoTile tile = mBoardTiles1.get(i);
+        // Shift starting position...
+        pos.x -= (tileLength/2);
+        pos.y += mOffsetY;
+
+        if (mBoardTiles1.size() < 1) {
+
+            mNextBoardTile1Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
+
+            return;
+        }
+
+        // Draw first tile in the center of the board
+
+        DominoTile tile = mBoardTiles1.get(0);
+
+        if (tile.isDouble()) {
+
+            // Center tile
+            pos.x += (tileLength/4);
+        }
+
+        RectF rect = calculateTileRect(tile, pos, dir, tileLength);
+
+        // Draw first tile...
+        tile.drawTile(canvas, rect, Color.WHITE, false);
+
+        // Store previous tile
+        DominoTile prevTile = tile;
+
+        // Draw the rest of tiles...
+
+        for(int i=1; i<mBoardTiles1.size(); i++) {
+
+            tile = mBoardTiles1.get(i);
+
+            // Check if we have to change direction...
 
             if (tile.isDouble()) {
 
-                left=offsetX-tileLength/4;
-                right=offsetX+tileLength/4;
-                top=offsetY-tileLength/2;
-                bottom = offsetY+tileLength/2;
-
-                offsetX += tileLength/2;
+                // Do not change direction if tile is double
             }
-            else {
+            else if ((dir == Dir.RIGHT) && (pos.x > mTileLimits.right)) {
 
-                left=offsetX-tileLength/2;
-                right=offsetX+tileLength/2;
-                top=offsetY-tileLength/4;
-                bottom=offsetY+tileLength/4;
+                // We have reached the right limit
+                // Change to down direction
 
-                offsetX += tileLength;
+                if (prevTile.isDouble()) {
+
+                    pos.x -= (tileLength/4);
+                    pos.y += (tileLength/2);
+                }
+                else {
+
+                    pos.x -= (tileLength / 4);
+                    pos.y += (tileLength / 4);
+                }
+
+                dir = Dir.DOWN;
+            }
+            else if ((dir == Dir.DOWN) && (pos.y > mTileLimits.bottom)) {
+
+                // We have reached the bottom limit
+                // Change to left direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x -= (tileLength/2);
+                    pos.y -= (tileLength/4);
+                }
+                else {
+
+                    pos.x += (tileLength/4);
+                    pos.y += (tileLength/4);
+                }
+
+                dir = Dir.LEFT;
             }
 
-            RectF tileRect = new RectF(left, top, right, bottom);
+            // Update the tile position
+            rect = calculateTileRect(tile, pos, dir, tileLength);
 
-            tile.drawTile(canvas, tileRect, Color.WHITE);
+            boolean swapNumbers = false;
+
+            if (dir == Dir.LEFT) {
+
+                swapNumbers = true;
+            }
+
+            tile.drawTile(canvas, rect, Color.WHITE, swapNumbers);
+
+            prevTile = tile;
         }
 
-        left=offsetX-tileLength/2;
-        right=offsetX+tileLength/2;
-        top=offsetY-tileLength/4;
-        bottom=offsetY+tileLength/4;
-
-        mNextBoardTile1Rect = new RectF(left, top, right, bottom);
+        mNextBoardTile1Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
     }
 
     private void drawBoardTiles2(Canvas canvas, RectF borderRect, float tileLength) {
 
+        /*
+        mBoardTiles2.clear();
+        //mBoardTiles1.add(new DominoTile(6, 6));
+        mBoardTiles2.add(new DominoTile(6, 0));
+        mBoardTiles2.add(new DominoTile(0, 1));
+        mBoardTiles2.add(new DominoTile(1, 2));
+        mBoardTiles2.add(new DominoTile(2, 2));
+        mBoardTiles2.add(new DominoTile(2, 3));
+        mBoardTiles2.add(new DominoTile(3, 3));
+        mBoardTiles2.add(new DominoTile(3, 4));
+        //mBoardTiles2.add(new DominoTile(4, 4));
+        mBoardTiles2.add(new DominoTile(4, 5));
+        mBoardTiles2.add(new DominoTile(5, 6));
+        mBoardTiles2.add(new DominoTile(6, 1));
+        mBoardTiles2.add(new DominoTile(1, 1));
+        */
 
+        // Starting direction is to the left...
+        Dir dir = Dir.LEFT;
+
+        // Initial position is border center...
+        PointF pos = new PointF(borderRect.centerX(), borderRect.centerY());
+
+        if (mBoardTiles1.size() > 0) {
+
+            // Shift starting position...
+
+            if (mBoardTiles1.get(0).isDouble()) {
+
+                pos.x -= (tileLength/4);
+            }
+            else {
+
+                pos.x -= (tileLength/2);
+            }
+
+            pos.y += mOffsetY;
+        }
+
+        // Simulate any custom tile...
+        DominoTile tile = new DominoTile(0, 1);
+
+        if (mBoardTiles2.size() < 1) {
+
+            mNextBoardTile2Rect = calculateTileRect(tile, pos, dir, tileLength);
+
+            return;
+        }
+
+        RectF rect;
+
+        DominoTile prevTile = tile;
+
+        for(int i=0; i<mBoardTiles2.size(); i++) {
+
+            tile = mBoardTiles2.get(i);
+
+            // Check if we have to change direction...
+
+            if (tile.isDouble()) {
+
+                // Do not change direction if tile is double
+            }
+            else if ((dir == Dir.LEFT) && (pos.x < mTileLimits.left)) {
+
+                // We have reached the left limit
+                // Change to up direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x += (tileLength / 4);
+                    pos.y -= (tileLength / 2);
+                }
+                else {
+
+                    pos.x += (tileLength / 4);
+                    pos.y -= (tileLength / 4);
+                }
+
+                dir = Dir.UP;
+            }
+            else if ((dir == Dir.UP) && (pos.y < mTileLimits.top)) {
+
+                // We have reached the top limit
+                // Change to right direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x += (tileLength / 2);
+                    pos.y += (tileLength / 4);
+                }
+                else {
+
+                    pos.x -= (tileLength / 4);
+                    pos.y -= (tileLength / 4);
+                }
+
+                dir = Dir.RIGHT;
+            }
+
+            // Update the tile position
+            rect = calculateTileRect(tile, pos, dir, tileLength);
+
+            boolean swapNumbers = false;
+
+            if ((dir == Dir.LEFT) || (dir == Dir.UP)) {
+
+                swapNumbers = true;
+            }
+
+            tile.drawTile(canvas, rect, Color.WHITE, swapNumbers);
+
+            prevTile = tile;
+        }
+
+        mNextBoardTile2Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
+
+        /*
+        left = offsetX - tileLength;
+        right = offsetX;
+        top = offsetY-tileLength/4;
+        bottom = offsetY+tileLength/4;
+
+        mNextBoardTile2Rect = new RectF(left, top, right, bottom);
+        */
+    }
+
+    private RectF calculateTileRect(DominoTile tile, PointF pos, Dir dir, float tileLength) {
+
+        RectF rect = new RectF();
+
+        if (tile.isDouble()) {
+
+            switch (dir) {
+
+                case LEFT:
+
+                    rect.left = pos.x - tileLength/2;
+                    rect.right = pos.x;
+                    rect.top = pos.y - tileLength/2;
+                    rect.bottom = pos.y + tileLength/2;
+
+                    pos.x -= (tileLength/2);
+
+                    break;
+
+                case RIGHT:
+
+                    rect.left = pos.x;
+                    rect.right = pos.x + tileLength/2;
+                    rect.top = pos.y - tileLength/2;
+                    rect.bottom = pos.y + tileLength/2;
+
+                    pos.x += (tileLength/2);
+
+                    break;
+
+                case UP:
+
+                    rect.left = pos.x - tileLength/2;
+                    rect.right = pos.x + tileLength/2;
+                    rect.top = pos.y  - tileLength/2;
+                    rect.bottom = pos.y;
+
+                    pos.y -= (tileLength/2);
+
+                    break;
+
+                case DOWN:
+
+                    rect.left = pos.x - tileLength/2;
+                    rect.right = pos.x + tileLength/2;
+                    rect.top = pos.y;
+                    rect.bottom = pos.y + tileLength/2;
+
+                    pos.y += (tileLength/2);
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        else {
+
+            switch (dir) {
+
+                case LEFT:
+
+                    rect.left = pos.x - tileLength;
+                    rect.right = pos.x;
+                    rect.top = pos.y - tileLength/4;
+                    rect.bottom = pos.y + tileLength/4;
+
+                    pos.x -= tileLength;
+
+                    break;
+
+                case RIGHT:
+
+                    rect.left = pos.x;
+                    rect.right = pos.x + tileLength;
+                    rect.top = pos.y - tileLength/4;
+                    rect.bottom = pos.y + tileLength/4;
+
+                    pos.x += tileLength;
+
+                    break;
+
+                case UP:
+
+                    rect.left = pos.x - tileLength/4;
+                    rect.right = pos.x + tileLength/4;
+                    rect.top = pos.y - tileLength;
+                    rect.bottom = pos.y;
+
+                    pos.y -= tileLength;
+
+                    break;
+
+                case DOWN:
+
+                    rect.left = pos.x - tileLength/4;
+                    rect.right = pos.x + tileLength/4;
+                    rect.top = pos.y;
+                    rect.bottom = pos.y + tileLength;
+
+                    pos.y += tileLength;
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        return rect;
     }
 
     private void drawNextBoardTiles(Canvas canvas) {
+
+        if (mTurnPlayer != Game.PlayerPos.PLAYER) {
+
+            // Draw next board tiles only if it's the turn of the PLAYER
+
+            return;
+        }
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
@@ -457,5 +904,73 @@ public class GameBoardView extends View {
                 canvas.drawRect(mNextBoardTile1Rect, paint);
             }
         }
+
+        if (mHighlightNextBoardTile2) {
+
+            if (mNextBoardTile2Rect != null) {
+
+                canvas.drawRect(mNextBoardTile2Rect, paint);
+            }
+        }
+    }
+
+    public void setOnTilePlayedListener(OnTilePlayedListener listener) {
+
+        mListener = listener;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        if (mListener == null) {
+
+            return false;
+        }
+
+        float x = event.getX();
+        float y = event.getY();
+
+        // Check if we have clicked in the next tile of board 1
+
+        if (mHighlightNextBoardTile1) {
+
+            if (mNextBoardTile1Rect != null) {
+
+                if (mNextBoardTile1Rect.contains(x, y)) {
+
+                    mListener.onTilePlayed(mSelectedTile, 1);
+
+                    return false;
+                }
+            }
+        }
+
+        if (mHighlightNextBoardTile2) {
+
+            if (mNextBoardTile2Rect != null) {
+
+                if (mNextBoardTile2Rect.contains(x, y)) {
+
+                    mListener.onTilePlayed(mSelectedTile, 2);
+                }
+            }
+        }
+
+        if ((x < 50) && (y < 50)) {
+
+
+
+
+        }
+
+        return false;
+    }
+
+    public void clearHighlights() {
+
+        mHighlightNextBoardTile1 = false;
+        mHighlightNextBoardTile2 = false;
+
+        mSelectedTile = null;
     }
 }
