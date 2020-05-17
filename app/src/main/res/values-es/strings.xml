@@ -1,38 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="allow_launch_games">Permitir lanzar partidas</string>
     <string name="app_name">Dominoo</string>
-    <string name="player_name_">Nombre del jugador:</string>
+
     <string name="connect">Conectar</string>
-    <string name="default_player_name">Jugador01</string>
-    <string name="player_name_is_too_short">El nombre del jugador es muy corto. Introduzca un nombre de jugador con al menos 4 caracteres</string>
-    <string name="player_name_is_too_long">El nombre del jugador es muy largo (Longitud máxima son 6 caracteres)</string>
-    <string name="player_name_has_special_char">El nombre del jugador tiene caracteres especiales. Utilice únicamente letras y números</string>
     <string name="connecting_">Conectando…</string>
-    <string name="error_while_connecting">Error al conectar al servidor</string>
     <string name="connection_successful">Conexión con el servidor satisfactoria</string>
+
     <string name="do_you_want_to_exit_">¿Quieres salir?</string>
-    <string name="partner_">Compañero:</string>
-    <string name="left_opponent_">Oponente izquierda:</string>
-    <string name="right_opponent_">Oponente derecha:</string>
+
+    <string name="error_while_connecting">Error al conectar al servidor</string>
+
+    <string name="game_finished">Partida finalizada</string>
+
+    <string name="insert_player_name_with_at_least_x_chars">Introduzca un nombre de jugador con al menos %1$d caracteres</string>
+    <string name="invalid_port_number">Número de puerto incorrecto</string>
+    <string name="invalid_server_address">Dirección del servidor no válida</string>
+    <string name="in_case_of_tie_hand_wins">(En case de empate, la mano gana)</string>
+
     <string name="launch_game">Lanzar partida</string>
-    <string name="version_">Versión:</string>
+    <string name="left_opponent_">Oponente izquierda:</string>
+
+    <string name="maximum_player_name_length_is_x_characters">La longitud máxima del nombre del jugador son %1$d caracteres</string>
+
+    <string name="pair_1">Pareja 1</string>
+    <string name="pair_2">Pareja 2</string>
+    <string name="pair_x_has_won_the_game">La pareja %1$d ha ganado la partida</string>
+    <string name="partner_">Compañero:</string>
+    <string name="pass_turn">Pasar turno</string>
+    <string name="player_has_closed_the_round">El jugador \'%1$s\' ha cerrado la ronda.</string>
+    <string name="player_has_won_the_round">El jugador \'%1$s\' ha ganado la ronda.</string>
+    <string name="player_name_">Nombre del jugador:</string>
+    <string name="player_name_has_special_char">El nombre del jugador tiene caracteres especiales. Utilice únicamente letras y números</string>
+    <string name="player_name_is_too_long">El nombre del jugador es muy largo.</string>
+    <string name="player_name_is_too_short">El nombre del jugador es muy corto.</string>
+
+    <string name="reset_default_values">Establecer valores por defecto</string>
+    <string name="right_opponent_">Oponente derecha:</string>
+    <string name="round_finished">Ronda finalizada</string>
+    <string name="round_closed">Ronda cerrada</string>
+
     <string name="settings">Ajustes</string>
     <string name="server_addr_">Dir. servidor:</string>
     <string name="server_port_">Puerto servidor:</string>
-    <string name="allow_launch_games">Permitir lanzar partidas</string>
-    <string name="reset_default_values">Establecer valores por defecto</string>
-    <string name="invalid_port_number">Número de puerto incorrecto</string>
-    <string name="invalid_server_addr">Dirección del servidor no válida</string>
-    <string name="pass_turn">Pasar turno</string>
-    <string name="player_has_won">El jugador \'%1$s\' ha ganado la ronda.</string>
-    <string name="player_has_closed">El jugador \'%1$s\' ha cerrado la ronda.</string>
-    <string name="pair_1">Pareja 1</string>
-    <string name="pair_2">Pareja 2</string>
-    <string name="x_points">%1$d puntos</string>
-    <string name="total_remaining_points_">Total de puntos restantes:</string>
-    <string name="round_finished">Ronda finalizada</string>
-    <string name="round_closed">Ronda cerrada</string>
     <string name="starting_round_x_">Empezando ronda %1$d...</string>
+
+    <string name="total_remaining_points_">Total de puntos restantes:</string>
+
+    <string name="unknown_game_status">Estado del juego desconocido</string>
+
+    <string name="version_">Versión:</string>
+
     <string name="winner_is_pair_x">El ganador es la pareja %1$d</string>
-    <string name="in_case_of_tie_hand_wins">(En case de empate, la mano gana)</string>
+
+    <string name="x_points">%1$d puntos</string>
+
 </resources>

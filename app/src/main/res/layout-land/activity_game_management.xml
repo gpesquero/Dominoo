@@ -18,13 +18,10 @@
         android:text="@string/app_name"
         android:textSize="64sp" />
 
-    <TextView
-        android:id="@+id/textView1"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text=""
-        android:textSize="24sp" />
+        android:layout_height="0px"
+        android:layout_weight="1"/>
 
     <TextView
         android:id="@+id/textViewPartner"
@@ -35,7 +32,7 @@
         android:layout_weight="0"
         android:gravity="center"
         android:text="@string/partner_"
-        android:textSize="24sp" />
+        android:textSize="20sp" />
 
     <org.dominoo.DropdownButton
         android:id="@+id/dropdownButtonPartner"
@@ -49,7 +46,9 @@
         android:drawableEnd="@android:drawable/arrow_down_float"
         android:drawableRight="@android:drawable/arrow_down_float"
         android:gravity="center"
-        android:text="" />
+        android:text=""
+        android:padding="2dp"
+        android:textSize="20sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -72,7 +71,7 @@
                 android:layout_weight="0"
                 android:gravity="center"
                 android:text="@string/left_opponent_"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <org.dominoo.DropdownButton
                 android:id="@+id/dropdownButtonOpponentLeft"
@@ -86,7 +85,10 @@
                 android:drawableLeft="@android:drawable/arrow_down_float"
                 android:drawableEnd="@android:drawable/arrow_down_float"
                 android:drawableRight="@android:drawable/arrow_down_float"
-                android:text="" />
+                android:gravity="center"
+                android:text=""
+                android:padding="2dp"
+                android:textSize="20sp" />
 
         </LinearLayout>
 
@@ -105,7 +107,7 @@
                 android:layout_weight="0"
                 android:gravity="center"
                 android:text="@string/right_opponent_"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <org.dominoo.DropdownButton
                 android:id="@+id/dropdownButtonOpponentRight"
@@ -119,7 +121,10 @@
                 android:drawableLeft="@android:drawable/arrow_down_float"
                 android:drawableEnd="@android:drawable/arrow_down_float"
                 android:drawableRight="@android:drawable/arrow_down_float"
-                android:text="" />
+                android:text=""
+                android:gravity="center"
+                android:padding="2dp"
+                android:textSize="20sp" />
 
         </LinearLayout>
 
@@ -134,7 +139,7 @@
         android:layout_weight="0"
         android:gravity="center"
         android:text="@string/player_name_"
-        android:textSize="24sp" />
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/textViewPlayerName"
@@ -144,9 +149,14 @@
         android:width="300dp"
         android:background="#009688"
         android:gravity="center"
-        android:padding="10sp"
         android:text="TextView"
-        android:textSize="22sp" />
+        android:padding="2dp"
+        android:textSize="20sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -184,5 +194,10 @@
             app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"/>
 
 </LinearLayout>

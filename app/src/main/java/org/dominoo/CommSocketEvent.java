@@ -13,6 +13,7 @@ public class CommSocketEvent {
         DATA_READ,
         DATA_SENT,
         SOCKET_READ_ERROR,
+        SOCKET_WRITE_ERROR,
         SOCKET_CLOSED
     }
 

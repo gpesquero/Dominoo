@@ -46,9 +46,10 @@ public class CommSocket {
 
         void onConnectionEstablished();
         void onConnectionError(String errorMessage);
-        void onConnectionLost();
+        //void onConnectionLost();
         void onDataReceived(String data);
         void onDataReadError(String errorMessage);
+        void onDataWriteError(String errorMessage);
         void onDataSent();
         void onSocketClosed();
     }
@@ -79,6 +80,8 @@ public class CommSocket {
     }
 
     public void setCommSocketListener(CommSocketListener listener) {
+
+        Log.d("DomLog", "setCommSocketListener() listener= "+listener);
 
         if (mCommSocketListenerTask != null) {
 
@@ -223,9 +226,13 @@ public class CommSocket {
             }
             catch (IOException e) {
 
-                mSocketWriter = null;
+                CommSocketEvent commSocketEvent = new CommSocketEvent();
 
-                mSocketErrorMessage = e.getMessage();
+                commSocketEvent.setEventType(CommSocketEvent.Type.SOCKET_WRITE_ERROR);
+
+                commSocketEvent.setEventErrorMessage("Socket.sendMessage() Error: " + e.getMessage());
+
+                addEvent(commSocketEvent);
 
                 return false;
             }
@@ -238,10 +245,20 @@ public class CommSocket {
 
                 mSocketWriter.println(message);
 
-                CommSocketEvent commSocketEvent=new CommSocketEvent(CommSocketEvent.Type.DATA_SENT);
+                CommSocketEvent commSocketEvent;
+
+                if (mSocketWriter.checkError()) {
+
+                    commSocketEvent=new CommSocketEvent(CommSocketEvent.Type.SOCKET_WRITE_ERROR);
+
+                    commSocketEvent.setEventErrorMessage("Socket.checkError() reports error");
+                }
+                else {
+
+                    commSocketEvent=new CommSocketEvent(CommSocketEvent.Type.DATA_SENT);
+                }
 
                 addEvent(commSocketEvent);
-
             }
         }).start();
 
@@ -382,7 +399,7 @@ public class CommSocket {
 
                 while ((inputLine = inputReader.readLine()) != null) {
 
-                    Log.i("DomLog", "readLine:"+inputLine);
+                    //Log.i("DomLog", "readLine:"+inputLine);
 
                     CommSocketEvent commSocketEvent = new CommSocketEvent();
 
@@ -522,17 +539,20 @@ public class CommSocket {
 
                 case CONNECTED:
 
-                    Log.i("DomLog", "commEvent: CONNECTED");
+                    //Log.i("DomLog", "commEvent: CONNECTED");
 
                     mListener.onConnectionEstablished();
+
                     startSocketReader();
+
                     break;
 
                 case CONNECT_ERROR:
 
-                    Log.i("DomLog", "commEvent: CONNECT ERROR");
+                    //Log.i("DomLog", "commEvent: CONNECT ERROR");
 
                     mListener.onConnectionError(events[0].getEventErrorMessage());
+
                     break;
 
                 case DATA_READ:
@@ -540,6 +560,7 @@ public class CommSocket {
                     //Log.i("DomLog", "commEvent: DATA READ");
 
                     mListener.onDataReceived(events[0].getDataRead());
+
                     break;
 
                 case DATA_SENT:
@@ -547,23 +568,35 @@ public class CommSocket {
                     //Log.i("DomLog", "commEvent: DATA SENT");
 
                     mListener.onDataSent();
+
                     break;
 
                 case SOCKET_READ_ERROR:
 
-                    Log.i("DomLog", "commEvent: SOCKET READ ERROR");
+                    //Log.i("DomLog", "commEvent: SOCKET READ ERROR");
 
                     mListener.onDataReadError(events[0].getEventErrorMessage());
+
+                    break;
+
+                case SOCKET_WRITE_ERROR:
+
+                    //Log.i("DomLog", "commEvent: SOCKET WRITE ERROR");
+
+                    mListener.onDataWriteError(events[0].getEventErrorMessage());
+
                     break;
 
                 case SOCKET_CLOSED:
 
-                    Log.i("DomLog", "commEvent: SOCKET CLOSED");
+                    //Log.i("DomLog", "commEvent: SOCKET CLOSED");
 
                     mListener.onSocketClosed();
+
                     break;
 
                 default:
+
                     break;
             }
         }

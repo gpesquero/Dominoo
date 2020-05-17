@@ -16,39 +16,41 @@ public class Game {
 
     enum Status {
 
+        UNKNOWN,
         NOT_STARTED,
-        RUNNING
+        RUNNING,
+        FINISHED
     }
 
-    public static final int MAX_PLAYERS = 4;
+    static final int MAX_PLAYERS = 4;
 
-    public String mMyPlayerName;
+    String mMyPlayerName;
 
-    public ArrayList<String> mAllPlayerNames;
+    ArrayList<String> mAllPlayerNames;
 
-    public Status mStatus = Status.NOT_STARTED;
+    Status mStatus = Status.UNKNOWN;
 
-    public CommSocket mConnection;
+    CommSocket mConnection;
 
-    public ArrayList<DominoTile> mPlayerTiles = null;
+    ArrayList<DominoTile> mPlayerTiles = null;
 
-    public ArrayList<DominoTile> mBoardTiles1 = null;
-    public ArrayList<DominoTile> mBoardTiles2 = null;
+    ArrayList<DominoTile> mBoardTiles1 = null;
+    ArrayList<DominoTile> mBoardTiles2 = null;
 
-    public int mRoundCount = -1;
+    int mRoundCount = -1;
 
-    public boolean mForceDouble6Tile = false;
+    boolean mForceDouble6Tile = false;
 
-    public PlayerPos mTurnPlayerPos = PlayerPos.NONE;
+    PlayerPos mTurnPlayerPos = PlayerPos.NONE;
 
-    public PlayerPos mHandPlayerPos = PlayerPos.NONE;
+    PlayerPos mHandPlayerPos = PlayerPos.NONE;
 
-    public int[] mPlayerPoints = new int[MAX_PLAYERS];
+    int[] mPlayerPoints = new int[MAX_PLAYERS];
 
-    public int mPair1Points = 0;
-    public int mPair2Points = 0;
+    int mPair1Points = 0;
+    int mPair2Points = 0;
 
-    public Game() {
+    Game() {
 
         mAllPlayerNames = new ArrayList<String>();
     }
@@ -57,11 +59,7 @@ public class Game {
 
         ArrayList<String> otherPlayers=new ArrayList<String>();
 
-        Iterator<String> iter=mAllPlayerNames.iterator();
-
-        while(iter.hasNext()) {
-
-            String name=iter.next();
+        for (String name : mAllPlayerNames) {
 
             // If it's the current player name, do not add it
             if (name.compareTo(mMyPlayerName)==0)
@@ -77,12 +75,12 @@ public class Game {
          return otherPlayers;
     }
 
-    public int getMyPlayerPos() {
+    int getMyPlayerPos() {
 
         return mAllPlayerNames.indexOf(mMyPlayerName);
     }
 
-    public String getPartnerName() {
+    String getPartnerName() {
 
         int myPlayerPos = mAllPlayerNames.indexOf(mMyPlayerName);
 
@@ -252,5 +250,39 @@ public class Game {
     public int getPair2Points() {
 
         return mPair2Points;
+    }
+
+    void processGameInfoMessage(Message msg) {
+
+        mAllPlayerNames.clear();
+
+        mAllPlayerNames.add(msg.getArgument("player0"));
+        mAllPlayerNames.add(msg.getArgument("player1"));
+        mAllPlayerNames.add(msg.getArgument("player2"));
+        mAllPlayerNames.add(msg.getArgument("player3"));
+
+        String statusText=msg.getArgument("status");
+
+        if (statusText == null) {
+
+            mStatus= Game.Status.NOT_STARTED;
+        }
+        else if (statusText.compareTo("notStarted")==0) {
+
+            mStatus= Game.Status.NOT_STARTED;
+        }
+        else if (statusText.compareTo("running")==0) {
+
+            mStatus= Game.Status.RUNNING;
+        }
+        else if (statusText.compareTo("finished")==0) {
+
+            mStatus= Game.Status.FINISHED;
+        }
+        else {
+
+            mStatus= Game.Status.UNKNOWN;
+        }
+
     }
 }

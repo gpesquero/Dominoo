@@ -28,7 +28,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         mApp = (DominooApplication)getApplication();
 
         mEditTextServerAddress = findViewById(R.id.editTextServerAddress);
-        mEditTextServerAddress.setText(mApp.mServerAddr);
+        mEditTextServerAddress.setText(mApp.mServerAddress);
 
         mEditTextServerPort = findViewById(R.id.editTextServerPort);
         mEditTextServerPort.setText(Integer.toString(mApp.mServerPort));
@@ -56,16 +56,16 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onBackPressed() {
 
-        String serverAddr = mEditTextServerAddress.getText().toString();
+        String serverAddress = mEditTextServerAddress.getText().toString();
 
-        if (serverAddr.isEmpty()) {
+        if (serverAddress.isEmpty()) {
 
-            Toast.makeText(this, R.string.invalid_server_addr, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.invalid_server_address, Toast.LENGTH_LONG).show();
 
             return;
         }
 
-        mApp.mServerAddr = serverAddr;
+        mApp.mServerAddress = serverAddress;
 
         try {
 

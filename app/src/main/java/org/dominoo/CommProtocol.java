@@ -49,6 +49,15 @@ public class CommProtocol {
         return message;
     }
 
+    public static String createMsgRequestGameInfo(String playerName) {
+
+        String message;
+
+        message="<request_game_info, playerName="+playerName+">";
+
+        return message;
+    }
+
     public static String createMsgPlayTile(String playerName, int playerPos,
                                            DominoTile tile, int boardSide) {
 
@@ -70,8 +79,6 @@ public class CommProtocol {
 
         return message;
     }
-
-
 
     static public Message processLine(String line) {
 

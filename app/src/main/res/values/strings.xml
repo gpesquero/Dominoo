@@ -1,41 +1,63 @@
 <resources>
+
+    <string name="allow_launch_games">Allow launch games</string>
     <string name="app_name">Dominoo</string>
-    <string name="player_name_">Player name:</string>
+
     <string name="connect">Connect</string>
+    <string name="connecting_">Connecting…</string>
+    <string name="connection_successful">Connection to server successful</string>
+
+    <string name="do_you_want_to_exit_">Do you want to exit?</string>
+
+    <string name="error_while_connecting">Error while connecting to server</string>
+
+    <string name="game_finished">Game finished</string>
+
+    <string name="insert_player_name_with_at_least_x_chars">Insert a player name with at least %1$d characters</string>
+    <string name="invalid_port_number">Invalid port number</string>
+    <string name="invalid_server_address">Invalid server address</string>
+    <string name="in_case_of_tie_hand_wins">(In the case of a tie game, the hand wins)</string>
+
+    <string name="key_allow_launch_games" translatable="false">key_allow_launch_games</string>
     <string name="key_player_name" translatable="false">key_player_name</string>
     <string name="key_server_address" translatable="false">key_server_address</string>
     <string name="key_server_port" translatable="false">key_server_port</string>
-    <string name="key_allow_launch_games" translatable="false">key_allow_launch_games</string>
-    <string name="default_player_name">Player01</string>
-    <string name="player_name_is_too_short">Player name is too short. Insert a player name with at least 4 characters</string>
-    <string name="player_name_is_too_long">Player name is too long (Maximum length is 6 characters)</string>
-    <string name="player_name_has_special_char">Player name has special characters. Use only letters and numbers</string>
-    <string name="connecting_">Connecting…</string>
-    <string name="error_while_connecting">Error while connecting to server</string>
-    <string name="connection_successful">Connection to server successful</string>
-    <string name="do_you_want_to_exit_">Do you want to exit?</string>
-    <string name="partner_">Partner:</string>
-    <string name="left_opponent_">Left opponent:</string>
-    <string name="right_opponent_">Right opponent:</string>
+
     <string name="launch_game">Launch game</string>
-    <string name="version_">Version:</string>
+    <string name="left_opponent_">Left opponent:</string>
+
+    <string name="maximum_player_name_length_is_x_characters">Maximum player name length is %1$d characters</string>
+
+    <string name="pair_1">Pair 1</string>
+    <string name="pair_2">Pair 2</string>
+    <string name="pair_x_has_won_the_game">Pair %1$d has won the game</string>
+    <string name="partner_">Partner:</string>
+    <string name="pass_turn">Pass turn</string>
+    <string name="player_has_won_the_round">The player \'%1$s\' has won the round.</string>
+    <string name="player_has_closed_the_round">The player \'%1$s\' has closed the round.</string>
+    <string name="player_name_">Player name:</string>
+    <string name="player_name_has_special_char">Player name has special characters. Use only letters and numbers</string>
+    <string name="player_name_is_too_long">Player name is too long.</string>
+    <string name="player_name_is_too_short">Player name is too short.</string>
+
+    <string name="reset_default_values">Reset to default values</string>
+    <string name="right_opponent_">Right opponent:</string>
+    <string name="round_finished">Round finished</string>
+    <string name="round_closed">Round closed</string>
+
     <string name="settings">Settings</string>
     <string name="server_addr_">Server addr:</string>
     <string name="server_port_">Server port:</string>
-    <string name="allow_launch_games">Allow launch games</string>
-    <string name="reset_default_values">Reset to default values</string>
-    <string name="invalid_port_number">Invalid port number</string>
-    <string name="invalid_server_addr">Invalid server address</string>
-    <string name="pass_turn">Pass turn</string>
-    <string name="player_has_won">The player \'%1$s\' has won the round.</string>
-    <string name="player_has_closed">The player \'%1$s\' has closed the round.</string>
-    <string name="pair_1">Pair 1</string>
-    <string name="pair_2">Pair 2</string>
-    <string name="x_points">%1$d points</string>
-    <string name="total_remaining_points_">Total remaining points:</string>
-    <string name="round_finished">Round finished</string>
-    <string name="round_closed">Round finished</string>
     <string name="starting_round_x_">Starting round %1$d...</string>
+
+    <string name="total_remaining_points_">Total remaining points:</string>
+
+    <string name="unknown_game_status">Unknown game status</string>
+
+    <string name="version_">Version:</string>
+
     <string name="winner_is_pair_x">Winner is pair %1$d</string>
-    <string name="in_case_of_tie_hand_wins">(In the case of a tie game, the hand wins)</string>
+
+    <string name="x_points">%1$d points</string>
+
 </resources>

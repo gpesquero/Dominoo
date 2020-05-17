@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private final int TIMER_DELAY=200;      // Timer every 200 ms
 
     private final int PLAYER_NAME_MIN_LENGTH = 4;
-    private final int PLAYER_NAME_MAX_LENGTH = 6;
+    private final int PLAYER_NAME_MAX_LENGTH = 8;
 
     /*
     // Create the observer which updates the UI.
@@ -81,6 +81,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.d("DomLog", "LoginActivity.onCreate()");
+
         setContentView(R.layout.activity_login);
 
         mLoginViewModel = ViewModelProviders.of(this).get(LoginViewModel.class);
@@ -99,7 +101,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mEditTextPlayerName=findViewById(R.id.editTextPlayerName);
 
-        String playerName = mPrefs.getString(getString(R.string.key_player_name), getString(R.string.default_player_name));
+        String playerName = mPrefs.getString(getString(R.string.key_player_name), "");
 
         mEditTextPlayerName.setText(playerName);
 
@@ -111,7 +113,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mApp.loadPreferences(this, mPrefs);
 
         String versionString = getString(R.string.version_);
-        versionString += String.format(" %d.%02d", mApp.VERSION_MAJOR, mApp.VERSION_MINOR);
+        //versionString += String.format(" %d.%02d", mApp.VERSION_MAJOR, mApp.VERSION_MINOR);
+        versionString += " " + BuildConfig.VERSION_NAME;
         mTextViewVersion.setText(versionString);
 
         //Session session=app.getSession();
@@ -149,6 +152,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onResume() {
         super.onResume();
 
+        Log.d("DomLog", "LoginActivity.onResume()");
+
         if (mApp.mCommSocket != null) {
 
             if (mApp.mCommSocket.getCommSocketListener() != this) {
@@ -160,6 +165,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     protected void onDestroy() {
+
+        Log.d("DomLog", "LoginActivity.onDestroy()");
 
         //DominooApplication app=(DominooApplication)getApplication();
 
@@ -179,7 +186,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Store mApp preferences
 
         SharedPreferences.Editor prefEditor=mPrefs.edit();
-        prefEditor.putString(getString(R.string.key_server_address), mApp.mServerAddr);
+        prefEditor.putString(getString(R.string.key_server_address), mApp.mServerAddress);
         prefEditor.putInt(getString(R.string.key_server_port), mApp.mServerPort);
         prefEditor.putBoolean(getString(R.string.key_allow_launch_games), mApp.mAllowLaunchGames);
         prefEditor.commit();
@@ -199,9 +206,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             if (playerName.length()<PLAYER_NAME_MIN_LENGTH) {
 
-                Toast toast=Toast.makeText(this, R.string.player_name_is_too_short,
+                Toast toast=Toast.makeText(this,
+                        getString(R.string.player_name_is_too_short)+"\n\n"+
+                        getString(R.string.insert_player_name_with_at_least_x_chars, PLAYER_NAME_MIN_LENGTH),
                         Toast.LENGTH_SHORT);
+
                 toast.setGravity(Gravity.CENTER,0, 0);
+
                 toast.show();
 
                 return;
@@ -209,9 +220,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             if (playerName.length() > PLAYER_NAME_MAX_LENGTH) {
 
-                Toast toast=Toast.makeText(this, R.string.player_name_is_too_long,
+                Toast toast=Toast.makeText(this,
+                        getString(R.string.player_name_is_too_long)+"\n\n"+
+                        getString(R.string.maximum_player_name_length_is_x_characters, PLAYER_NAME_MAX_LENGTH),
                         Toast.LENGTH_SHORT);
+
                 toast.setGravity(Gravity.CENTER, 0, 0);
+
                 toast.show();
 
                 return;
@@ -262,7 +277,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             //mApp.mCommSocket.connectToServer(SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
 
-            mApp.mCommSocket.connectToServer(mApp.mServerAddr, mApp.mServerPort, MAX_TIMEOUT);
+            mApp.mCommSocket.connectToServer(mApp.mServerAddress, mApp.mServerPort, MAX_TIMEOUT);
 
             mLoginViewModel.mElapsedTime = 0;
 
@@ -378,6 +393,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             game.mMyPlayerName=mEditTextPlayerName.getText().toString();
 
+            game.processGameInfoMessage(msg);
+
+            /*
             String statusText=msg.getArgument("status");
 
             if (statusText == null) {
@@ -403,6 +421,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             game.mAllPlayerNames.add(msg.getArgument("player1"));
             game.mAllPlayerNames.add(msg.getArgument("player2"));
             game.mAllPlayerNames.add(msg.getArgument("player3"));
+            */
 
             //session.mConnection=mConnectionViewModel.getConnection();
 
@@ -412,20 +431,83 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             //mLoginViewModel.interruptSocket();
 
-            if (game.mStatus == Game.Status.NOT_STARTED) {
+            switch(game.mStatus) {
+
+                case NOT_STARTED:
+                case RUNNING:
+                case FINISHED:
+
+                    // Launch Game Management Activity...
+                    Intent intent = new Intent(this, GameManagementActivity.class);
+                    startActivity(intent);
+                    break;
+
+                default:
+
+                    // Unknown game status
+
+                    Toast toast = Toast.makeText(this,
+                            R.string.unknown_game_status,
+                            Toast.LENGTH_LONG);
+
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+
+                    toast.show();
+
+
+
+            }
+
+            /*
+            if ((game.mStatus == Game.Status.NOT_STARTED) ||
+                (game.mStatus == Game.Status.FINISHED)) {
+
+                // Game has not started or has finished.
+                // Launch Game Management Activity...
+
+                Intent intent = new Intent(this, GameManagementActivity.class);
+                startActivity(intent);
+            }
+            else if (game.mStatus == Game.Status.RUNNING) {
+
+                // Game is running. Launch Game Board Activity...
+
+                //Intent intent = new Intent(this, GameBoardActivity.class);
 
                 Intent intent = new Intent(this, GameManagementActivity.class);
                 startActivity(intent);
             }
             else {
 
-                Intent intent = new Intent(this, GameBoardActivity.class);
-                startActivity(intent);
+                Toast toast = Toast.makeText(this,
+                        R.string.unknown_game_status,
+                        Toast.LENGTH_LONG);
+
+                toast.setGravity(Gravity.CENTER, 0, 0);
+
+                toast.show();
             }
+            */
+        }
+        else if (msg.mId== Message.MsgId.GAME_TILE_INFO) {
+
+            // Do nothing with "Game Tile Info"...
+        }
+        else if (msg.mId== Message.MsgId.ROUND_INFO) {
+
+            // Do nothing with "Round Info"...
+        }
+        else if (msg.mId== Message.MsgId.BOARD_TILE_INFO1) {
+
+            // Do nothing with "Board Tile Info 1"...
+        }
+        else if (msg.mId== Message.MsgId.BOARD_TILE_INFO2) {
+
+            // Do nothing with "Board Tile Info 2"...
         }
         else {
 
-            Log.d("DomLog", "LoginActivity.processMessage() unknown message Id="+msg.mId);
+            Log.e("DomLog", "LoginActivity.processMessage() unknown message Id="+msg.mId);
         }
     }
 
@@ -481,10 +563,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         updateControls();
     }
 
+    /*
     @Override
     public void onConnectionLost() {
 
     }
+    */
 
     @Override
     public void onDataReceived(String data) {
@@ -504,6 +588,25 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onDataReadError(String errorMessage) {
 
+        Toast toast = Toast.makeText(this,
+                "GameManagementActivity.onDataReadError(): "+errorMessage,
+                Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, 0, 0);
+
+        toast.show();
+    }
+
+    @Override
+    public void onDataWriteError(String errorMessage) {
+
+        Toast toast = Toast.makeText(this,
+                "GameManagementActivity.onDataWriteError(): "+errorMessage,
+                Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, 0, 0);
+
+        toast.show();
     }
 
     @Override
@@ -514,5 +617,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onSocketClosed() {
 
+        Toast toast=Toast.makeText(this,
+                "GameBoardActivity.onSocketClosed()",
+                Toast.LENGTH_SHORT);
+
+        toast.setGravity(Gravity.CENTER,0, 0);
+
+        toast.show();
     }
 }

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressLint("AppCompatCustomView")
-public class DropdownButton extends android.widget.Button implements View.OnClickListener{
+public class DropdownButton extends android.widget.TextView implements View.OnClickListener{
 
     private Context mContext = null;
 

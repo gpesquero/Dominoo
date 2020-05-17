@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,14 +40,9 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_management);
 
+        Log.d("DomLog", "GameManagementActivity.onCreate()");
+
         mApp = (DominooApplication)getApplication();
-
-        if (mApp.mCommSocket == null) {
-
-            mApp.mCommSocket = new CommSocket();
-        }
-
-        mApp.mCommSocket.setCommSocketListener(this);
 
         mDropdownButtonPartner = findViewById(R.id.dropdownButtonPartner);
         mDropdownButtonPartner.setOnSelectionChangedListener(this);
@@ -64,8 +61,46 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
         mButtonExit=findViewById(R.id.imageButtonExit);
         mButtonExit.setOnClickListener(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.d("DomLog", "GameManagementActivity.onResume()");
+
+        if (mApp.mCommSocket == null) {
+
+            // Socket is not valid
+            // Finish the activity
+            finish();
+
+            //mApp.mCommSocket = new CommSocket();
+
+            return;
+        }
+
+        mApp.mCommSocket.setCommSocketListener(this);
+
+        if (!mApp.sendRequestGameInfoMessage()) {
+
+            // Error sending message. Close activity...
+            closeActivity();
+        }
 
         updateControls();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        Log.d("DomLog", "GameManagementActivity.onPause()");
+
+        if (mApp.mCommSocket != null) {
+
+            mApp.mCommSocket.setCommSocketListener(null);
+        }
     }
 
     @Override
@@ -77,6 +112,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
     public void onDestroy() {
         super.onDestroy();
 
+        Log.d("DomLog", "GameManagementActivity.onDestroy()");
     }
 
     @Override
@@ -96,7 +132,11 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
                             // if this button is clicked, close
                             // current activity
 
-                            sendLogoutMessage();
+                            if (!mApp.sendLogoutMessage()) {
+
+                                // Error sending message. Close activity...
+                                closeActivity();
+                            }
                         }
                     })
                     .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -115,39 +155,25 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
         }
         else if (view == mButtonLaunchGame) {
 
-            sendLaunchGameMessage();
+            if (!mApp.sendLaunchGameMessage()) {
+
+                // Error sending message. Close activity...
+                closeActivity();
+            }
         }
-    }
-
-    void sendLogoutMessage() {
-
-        // Create <Logout> message
-        String msg = CommProtocol.createMsgLogout(mApp.mGame.mMyPlayerName);
-
-        // Send the message to the server
-        mApp.mCommSocket.sendMessage(msg);
-    }
-
-    void sendLaunchGameMessage() {
-
-        // Create <Launch Game> message
-        String msg = CommProtocol.createMsgLaunchGame(mApp.mGame.mMyPlayerName);
-
-        // Send the message to the server
-        mApp.mCommSocket.sendMessage(msg);
     }
 
     private void closeActivity() {
 
-        //DominooApplication app=(DominooApplication)getApplication();
-
         mApp.mGame = null;
-        mApp.setGame(null);
 
-        mApp.mCommSocket.close();
-        mApp.mCommSocket.setCommSocketListener(null);
+        if (mApp.mCommSocket != null) {
+
+            mApp.mCommSocket.close();
+            mApp.mCommSocket.setCommSocketListener(null);
+        }
+
         mApp.mCommSocket = null;
-        mApp.setCommSocket(null);
 
         // Finish the activity
         finish();
@@ -155,25 +181,15 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
     private void updateControls() {
 
-        int pos;
-
-        //int playerPos = mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mPlayerName);
-
         ArrayList<String> otherPlayers = mApp.mGame.getOtherPlayers();
 
-        //int partnerPos = (playerPos + 2) % 4;
         mDropdownButtonPartner.setItemsList(otherPlayers);
-        //mDropdownButtonPartner.setSelection(mApp.mGame.mAllPlayerNames.get(partnerPos));
         mDropdownButtonPartner.setSelection(mApp.mGame.getPartnerName());
 
-        //int leftOpponentPos = (playerPos + 3) % 4;
         mDropdownButtonOpponentLeft.setItemsList(otherPlayers);
-        //mDropdownButtonOpponentLeft.setSelection(mApp.mGame.mAllPlayerNames.get(leftOpponentPos));
         mDropdownButtonOpponentLeft.setSelection(mApp.mGame.getLeftOpponentName());
 
-        //int rightOpponentPos = (playerPos + 1) % 4;
         mDropdownButtonOpponentRight.setItemsList(otherPlayers);
-        //mDropdownButtonOpponentRight.setSelection(mApp.mGame.mAllPlayerNames.get(rightOpponentPos));
         mDropdownButtonOpponentRight.setSelection(mApp.mGame.getRightOpponentName());
 
         mButtonLaunchGame.setEnabled(mApp.mAllowLaunchGames);
@@ -185,11 +201,41 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
     @Override
     public void onConnectionError(String errorMessage) {
+
+        Toast toast = Toast.makeText(this,
+                "GameManagementActivity.onConnectionError(): "+errorMessage,
+                Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, 0, 0);
+
+        toast.show();
+
+        closeActivity();
+
+        /*
+        if (!sendRequestGameInfoMessage()) {
+
+            // Error sending message. Most probably connection is lost...
+            // Close activity...
+
+            closeActivity();
+        }
+        */
     }
 
+    /*
     @Override
     public void onConnectionLost() {
+
+        Toast toast = Toast.makeText(this,
+                "GameManagementActivity.onConnectionLost()",
+                Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, 0, 0);
+
+        toast.show();
     }
+    */
 
     @Override
     public void onDataReceived(String data) {
@@ -207,6 +253,33 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
     @Override
     public void onDataReadError(String errorMessage) {
+
+        Toast toast = Toast.makeText(this,
+                "GameManagementActivity.onDataReadError(): "+errorMessage,
+                Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, 0, 0);
+
+        toast.show();
+
+        if (!mApp.sendRequestGameInfoMessage()) {
+
+            closeActivity();
+        }
+    }
+
+    @Override
+    public void onDataWriteError(String errorMessage) {
+
+        Toast toast = Toast.makeText(this,
+                "GameManagementActivity.onDataWriteError(): "+errorMessage,
+                Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, 0, 0);
+
+        toast.show();
+
+        closeActivity();
     }
 
     @Override
@@ -215,14 +288,27 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
     @Override
     public void onSocketClosed() {
+
+        Toast toast=Toast.makeText(this,
+                "GameBoardActivity.onSocketClosed()",
+                Toast.LENGTH_SHORT);
+
+        toast.setGravity(Gravity.CENTER,0, 0);
+
+        toast.show();
+
+        closeActivity();
     }
 
     private void processMessage(Message msg) {
 
         if (msg.mId == Message.MsgId.GAME_INFO) {
 
-            Log.i("DomLog", "GameManagementActivity. Received Game Info Message");
+            //Log.i("DomLog", "GameManagementActivity. Received Game Info Message");
 
+            mApp.mGame.processGameInfoMessage(msg);
+
+            /*
             mApp.mGame.mAllPlayerNames.clear();
 
             mApp.mGame.mAllPlayerNames.add(msg.getArgument("player0"));
@@ -248,11 +334,12 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
                 mApp.mGame.mStatus= Game.Status.NOT_STARTED;
             }
+            */
 
             if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mMyPlayerName) <0 ) {
 
                 // We have not found our player name in the player list
-                Log.i("DomLog", "Player name not found in player list. Close Activity");
+                //Log.i("DomLog", "Player name not found in player list. Close Activity");
 
                 // We have to close the Activity
                 closeActivity();
@@ -268,6 +355,22 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
                 // Update UI control
                 updateControls();
             }
+        }
+        else if (msg.mId== Message.MsgId.GAME_TILE_INFO) {
+
+            // Do nothing with "Game Tile Info"...
+        }
+        else if (msg.mId== Message.MsgId.ROUND_INFO) {
+
+            // Do nothing with "Round Info"...
+        }
+        else if (msg.mId== Message.MsgId.BOARD_TILE_INFO1) {
+
+            // Do nothing with "Board Tile Info 1"...
+        }
+        else if (msg.mId== Message.MsgId.BOARD_TILE_INFO2) {
+
+            // Do nothing with "Board Tile Info 2"...
         }
         else {
 
@@ -306,8 +409,10 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
 
         int index = (playerPos + delta) % 4;
 
-        String msg = CommProtocol.createMsgMovePlayer(selectedName, index);
+        if (!mApp.sendMovePlayerMessage(selectedName, index)) {
 
-        mApp.mCommSocket.sendMessage(msg);
+            // Error sending message. Close activity...
+            closeActivity();
+        }
     }
 }
