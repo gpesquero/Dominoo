@@ -1,24 +1,29 @@
 package org.dominoo;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-//import android.support.v7.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
+import java.util.Locale;
 
-    EditText mEditTextServerAddress;
-    EditText mEditTextServerPort;
-    Button mButtonResetDefaultValues;
-    CheckBox mCheckboxAllowLaunchGames;
+public class SettingsActivity extends AppCompatActivity implements View.OnClickListener,
+        TextToSpeech.OnInitListener {
 
-    DominooApplication mApp = null;
+    private EditText mEditTextServerAddress;
+    private EditText mEditTextServerPort;
+    private Button mButtonResetDefaultValues;
+    private CheckBox mCheckboxAllowLaunchGames;
+
+    private DominooApplication mApp = null;
+
+    private TextToSpeech mTTS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +43,28 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         mButtonResetDefaultValues = findViewById(R.id.buttonResetDefaultValues);
         mButtonResetDefaultValues.setOnClickListener(this);
+
+        /*
+        mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+
+            @Override
+            public void onInit(int status) {
+
+                if (status==TextToSpeech.SUCCESS) {
+
+                    mTTS.setLanguage(Locale.ENGLISH);
+                }
+            }
+        });
+        */
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+
     }
 
     @Override
@@ -81,6 +108,31 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         mApp.mAllowLaunchGames = mCheckboxAllowLaunchGames.isChecked();
 
         super.onBackPressed();
+    }
+
+    @Override
+    public void onInit(int status) {
+
+        String text;
+
+        if (status == TextToSpeech.SUCCESS) {
+
+            text = "TextToSpeech.onInit() status=SUCCESS";
+        }
+        else if (status == TextToSpeech.ERROR) {
+
+            text = "TextToSpeech.onInit() status=ERROR";
+        }
+        else {
+
+            text = "Other";
+        }
+
+        Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
+
+        mTTS.setLanguage(Locale.ENGLISH);
     }
 }
 

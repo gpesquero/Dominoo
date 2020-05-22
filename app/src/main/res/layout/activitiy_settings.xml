@@ -10,11 +10,16 @@
         android:id="@+id/textViewSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="0"
         android:gravity="center_horizontal|center_vertical"
         android:text="@string/settings"
         android:textSize="32sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"/>
 
     <TableLayout
         android:layout_width="match_parent"
@@ -29,7 +34,8 @@
                 android:id="@+id/textView3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="10dp"
                 android:layout_weight="0"
                 android:gravity="right"
                 android:text="@string/server_addr_"
@@ -39,7 +45,7 @@
                 android:id="@+id/editTextServerAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_weight="1"
                 android:ems="10"
                 android:inputType="textPersonName"
@@ -55,7 +61,8 @@
                 android:id="@+id/textView4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="10dp"
                 android:layout_weight="0"
                 android:gravity="right"
                 android:text="@string/server_port_"
@@ -65,7 +72,7 @@
                 android:id="@+id/editTextServerPort"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_weight="1"
                 android:ems="10"
                 android:inputType="number"
@@ -75,14 +82,25 @@
 
     </TableLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"/>
+
     <CheckBox
         android:id="@+id/checkBoxAllowLaunchGames"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:layout_weight="0"
         android:text="@string/allow_launch_games"
         android:textSize="20dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"/>
 
     <Button
         android:id="@+id/buttonResetDefaultValues"
@@ -93,12 +111,9 @@
         android:layout_weight="0"
         android:text="@string/reset_default_values" />
 
-    <EditText
-        android:id="@+id/editText"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:ems="10"
-        android:inputType="number" />
+        android:layout_height="0px"
+        android:layout_weight="1"/>
 
 </LinearLayout>

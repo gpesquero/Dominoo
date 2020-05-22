@@ -31,6 +31,7 @@
     <string name="pair_1">Pair 1</string>
     <string name="pair_2">Pair 2</string>
     <string name="pair_x_has_won_the_game">Pair %1$d has won the game</string>
+    <string name="pair_x_y_pts">Pair %1$d (%2$d pts)</string>
     <string name="partner_">Partner:</string>
     <string name="pass_turn">Pass turn</string>
     <string name="player_has_won_the_round">The player \'%1$s\' has won the round.</string>

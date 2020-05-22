@@ -30,23 +30,23 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:id="@+id/textViewPair1"
+                    android:id="@+id/textViewPair1XPoints"
                     android:layout_width="0px"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="@string/pair_1" />
+                    android:text="@string/pair_x_y_pts" />
 
                 <TextView
-                    android:id="@+id/textViewPair2"
+                    android:id="@+id/textViewPair2XPoints"
                     android:layout_width="0px"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/pair_2"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:text="@string/pair_x_y_pts"/>
 
             </TableRow>
 
@@ -93,29 +93,6 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Player 3" />
-
-            </TableRow>
-
-            <TableRow
-                android:layout_width="0px"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:id="@+id/textViewPair1Points"
-                    android:layout_width="0px"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="0 points" />
-
-                <TextView
-                    android:id="@+id/textViewPair2Points"
-                    android:layout_width="0px"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="0 points" />
 
             </TableRow>
 

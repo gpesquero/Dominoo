@@ -26,13 +26,13 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
     GameBoardView mGameBoardView;
     PlayerTilesView mPlayerTilesView;
 
+    TextView mTextViewPair1XPoints;
+    TextView mTextViewPair2XPoints;
+
     TextView mTextViewPlayer0Name;
     TextView mTextViewPlayer1Name;
     TextView mTextViewPlayer2Name;
     TextView mTextViewPlayer3Name;
-
-    TextView mTextViewPair1Points;
-    TextView mTextViewPair2Points;
 
     Button mButtonPassTurn;
 
@@ -51,20 +51,20 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         mPlayerTilesView = findViewById(R.id.viewPlayerTiles);
         mPlayerTilesView.setOnTileSelectedListener(this);
 
+        mTextViewPair1XPoints = findViewById(R.id.textViewPair1XPoints);
+        //mTextViewPair1XPoints.setOnClickListener(this);
+
+        mTextViewPair2XPoints = findViewById(R.id.textViewPair2XPoints);
+        //mTextViewPair2XPoints.setOnClickListener(this);
+
         mTextViewPlayer0Name = findViewById(R.id.textViewPlayer0Name);
         mTextViewPlayer1Name = findViewById(R.id.textViewPlayer1Name);
         mTextViewPlayer2Name = findViewById(R.id.textViewPlayer2Name);
         mTextViewPlayer3Name = findViewById(R.id.textViewPlayer3Name);
 
-        mTextViewPair1Points = findViewById(R.id.textViewPair1Points);
-        mTextViewPair2Points = findViewById(R.id.textViewPair2Points);
-
         mButtonPassTurn = findViewById(R.id.buttonPassTurn);
         mButtonPassTurn.setOnClickListener(this);
         mButtonPassTurn.setEnabled(false);
-
-        mTextViewPair1Points.setOnClickListener(this);
-        mTextViewPair2Points.setOnClickListener(this);
 
         updateControls();
 
@@ -157,8 +157,11 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         mTextViewPlayer2Name.setText(mApp.mGame.getPlayerName(2));
         mTextViewPlayer3Name.setText(mApp.mGame.getPlayerName(3));
 
-        mTextViewPair1Points.setText(getString(R.string.x_points, mApp.mGame.getPair1Points()));
-        mTextViewPair2Points.setText(getString(R.string.x_points, mApp.mGame.getPair2Points()));
+        mTextViewPair1XPoints.setText(getString(R.string.pair_x_y_pts, 1,
+                mApp.mGame.getPair1Points()));
+
+        mTextViewPair2XPoints.setText(getString(R.string.pair_x_y_pts, 2,
+                mApp.mGame.getPair2Points()));
 
         checkPassTurnButton();
     }

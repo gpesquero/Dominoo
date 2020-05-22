@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 
 public class DominooApplication extends Application {
 
-    public final static String DEFAULT_SERVER_ADDRESS="192.168.1.136";
+    public final static String DEFAULT_SERVER_ADDRESS="gpesquero.hopto.org";
     public final static int DEFAULT_SERVER_PORT=52301;
     public final static boolean DEFAULT_ALLOW_LAUNCH_GAMES = false;
 
