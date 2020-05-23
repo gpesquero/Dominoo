@@ -27,7 +27,7 @@
     <string name="pair_1">Pareja 1</string>
     <string name="pair_2">Pareja 2</string>
     <string name="pair_x_has_won_the_game">La pareja %1$d ha ganado la partida</string>
-    <string name="pair_x_y_pts">Pareja %1$d (%2$d pts)</string>
+    <string name="pair_x_y_pts">Par. %1$d (%2$d pts)</string>
     <string name="partner_">Compañero:</string>
     <string name="pass_turn">Pasar turno</string>
     <string name="player_has_closed_the_round">El jugador \'%1$s\' ha cerrado la ronda.</string>

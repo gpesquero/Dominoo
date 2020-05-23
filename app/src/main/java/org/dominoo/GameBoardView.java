@@ -21,6 +21,9 @@ public class GameBoardView extends View {
 
     private static final float TILE_SIZE_SCALE_FACTOR = 7;
 
+    private static final float TILE_LIMITS_HOR_SCALE = 4;
+    private static final float TILE_LIMITS_VER_SCALE = 8;
+
     private Game.PlayerPos mTurnPlayer = Game.PlayerPos.NONE;
     private Game.PlayerPos mHandPlayer = Game.PlayerPos.NONE;
 
@@ -43,6 +46,8 @@ public class GameBoardView extends View {
     private boolean mHighlightNextBoardTile2 = false;
 
     private RectF mTileLimits = null;
+
+    private boolean mDrawTestLines = false;
 
     private float mOffsetY = 0;
 
@@ -111,41 +116,41 @@ public class GameBoardView extends View {
 
         mTileLimits = new RectF();
 
-        float horLimit = borderRect.width()/3;
+        float horLimit = borderRect.width()/TILE_LIMITS_HOR_SCALE;
 
         mTileLimits.left = borderRect.centerX()-horLimit;
 
         mTileLimits.right = borderRect.centerX()+horLimit;
 
-        float verLimit = borderRect.height()/8;
+        float verLimit = borderRect.height()/TILE_LIMITS_VER_SCALE;
 
         mTileLimits.top = borderRect.centerY()+mOffsetY-verLimit;
         mTileLimits.bottom = borderRect.centerY()+mOffsetY+verLimit;
 
-        /*
-        // Draw limit lines
+        if (mDrawTestLines) {
 
-        Paint paint=new Paint();
+            // Draw limit lines
 
-        paint.setAntiAlias(true);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(3);
-        paint.setColor(Color.YELLOW);
+            Paint paint = new Paint();
 
-        // Draw left tile limit line
-        canvas.drawLine(mTileLimits.left, 0, mTileLimits.left, borderRect.bottom, paint);
+            paint.setAntiAlias(true);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeWidth(3);
+            paint.setColor(Color.YELLOW);
 
-        // Draw right tile limit line
-        canvas.drawLine(mTileLimits.right, 0, mTileLimits.right, borderRect.bottom, paint);
+            // Draw left tile limit line
+            canvas.drawLine(mTileLimits.left, 0, mTileLimits.left, borderRect.bottom, paint);
 
-        // Draw bottom tile limit line
-        canvas.drawLine(0, mTileLimits.bottom, borderRect.right, mTileLimits.bottom, paint);
+            // Draw right tile limit line
+            canvas.drawLine(mTileLimits.right, 0, mTileLimits.right, borderRect.bottom, paint);
 
-        // Draw top tile limit line
-        canvas.drawLine(0, mTileLimits.top, borderRect.right, mTileLimits.top, paint);
+            // Draw bottom tile limit line
+            canvas.drawLine(0, mTileLimits.bottom, borderRect.right, mTileLimits.bottom, paint);
 
-        */
+            // Draw top tile limit line
+            canvas.drawLine(0, mTileLimits.top, borderRect.right, mTileLimits.top, paint);
+        }
     }
 
     private RectF drawBorder(Canvas canvas) {
@@ -163,22 +168,21 @@ public class GameBoardView extends View {
 
         paint.setStrokeWidth(3);
         paint.setColor(Color.WHITE);
-        //canvas.drawRect(borderRect, paint);
 
-        /*
+        if (mDrawTestLines) {
 
-        // Draw reference lines
+            // Draw reference lines
 
-        paint.setColor(Color.YELLOW);
+            paint.setColor(Color.YELLOW);
 
-        // Draw horizontal center line
-        canvas.drawLine(borderRect.left, borderRect.centerY(),
-                borderRect.right, borderRect.centerY(), paint);
+            // Draw horizontal center line
+            canvas.drawLine(borderRect.left, borderRect.centerY(),
+                    borderRect.right, borderRect.centerY(), paint);
 
-        // Draw vertical center line
-        canvas.drawLine(borderRect.centerX(), borderRect.top,
-                borderRect.centerX(), borderRect.bottom, paint);
-        */
+            // Draw vertical center line
+            canvas.drawLine(borderRect.centerX(), borderRect.top,
+                    borderRect.centerX(), borderRect.bottom, paint);
+        }
 
         return borderRect;
     }
