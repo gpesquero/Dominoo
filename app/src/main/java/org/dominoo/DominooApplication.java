@@ -18,11 +18,6 @@ public class DominooApplication extends Application {
     public int mServerPort = DEFAULT_SERVER_PORT;
     public boolean mAllowLaunchGames = DEFAULT_ALLOW_LAUNCH_GAMES;
 
-    /*
-    public static final int VERSION_MAJOR = 0;
-    public static final int VERSION_MINOR = 2;
-    */
-
     public Game getGame() {
 
         return mGame;
@@ -73,6 +68,15 @@ public class DominooApplication extends Application {
 
         // Create <Launch Game> message
         String msg = CommProtocol.createMsgLaunchGame(mGame.mMyPlayerName);
+
+        // Send the message to the server
+        return mCommSocket.sendMessage(msg);
+    }
+
+    public boolean sendCancelGameMessage() {
+
+        // Create <Cancel Game> message
+        String msg = CommProtocol.createMsgCancelGame(mGame.mMyPlayerName);
 
         // Send the message to the server
         return mCommSocket.sendMessage(msg);

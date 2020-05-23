@@ -19,7 +19,8 @@ public class Game {
         UNKNOWN,
         NOT_STARTED,
         RUNNING,
-        FINISHED
+        FINISHED,
+        CANCELLED
     }
 
     static final int MAX_PLAYERS = 4;
@@ -265,19 +266,23 @@ public class Game {
 
         if (statusText == null) {
 
-            mStatus= Game.Status.NOT_STARTED;
+            mStatus = Status.NOT_STARTED;
         }
         else if (statusText.compareTo("notStarted")==0) {
 
-            mStatus= Game.Status.NOT_STARTED;
+            mStatus = Status.NOT_STARTED;
         }
         else if (statusText.compareTo("running")==0) {
 
-            mStatus= Game.Status.RUNNING;
+            mStatus = Status.RUNNING;
         }
         else if (statusText.compareTo("finished")==0) {
 
-            mStatus= Game.Status.FINISHED;
+            mStatus = Status.FINISHED;
+        }
+        else if (statusText.compareTo("cancelled")==0) {
+
+            mStatus = Status.CANCELLED;
         }
         else {
 

@@ -8,10 +8,13 @@
     <string name="connecting_">Conectando…</string>
     <string name="connection_successful">Conexión con el servidor satisfactoria</string>
 
-    <string name="do_you_want_to_exit_">¿Quieres salir?</string>
+    <string name="do_you_want_to_cancel_the_game_">¿Quiere cancelar la partida?</string>
+    <string name="do_you_want_to_exit_">¿Quiere salir?</string>
 
     <string name="error_while_connecting">Error al conectar al servidor</string>
 
+    <string name="game_cancellation">Cancelación de partida</string>
+    <string name="game_cancelled">Partida cancelada</string>
     <string name="game_finished">Partida finalizada</string>
 
     <string name="insert_player_name_with_at_least_x_chars">Introduzca un nombre de jugador con al menos %1$d caracteres</string>
@@ -47,6 +50,7 @@
     <string name="server_port_">Puerto servidor:</string>
     <string name="starting_round_x_">Empezando ronda %1$d...</string>
 
+    <string name="the_game_has_been_cancelled_">¡¡La partida ha sido cancelada!!</string>
     <string name="total_remaining_points_">Total de puntos restantes:</string>
 
     <string name="unknown_game_status">Estado del juego desconocido</string>

@@ -313,78 +313,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    /*
-    private void onConnectionEvent(CommSocketEvent connectionEvent)  {
-
-        mLastConnectionEvent = connectionEvent;
-
-        String toastText=null;
-
-        boolean killTimer=false;
-
-        switch(mLastConnectionEvent.getEventType()) {
-
-            case ERROR:
-
-                Log.d("DomLog", "onSocketStatusChanged() ERROR");
-
-                toastText=getString(R.string.error_while_connecting)+" ("+
-                        mLastConnectionEvent.getEventErrorMessage()+")";
-
-                //mConnectionViewModel.reset(this);
-
-                mLastConnectionEvent=new ConnectionEvent();
-                mLastConnectionEvent.setEventType(ConnectionEvent.Type.IDLE);
-
-                killTimer=true;
-
-                break;
-
-            case CONNECTED:
-
-                Log.d("DomLog", "onSocketStatusChanged() CONNECTED");
-
-                toastText=getString(R.string.connection_successful);
-
-                String playerName=mEditTextPlayerName.getText().toString();
-
-                String message=CommProtocol.createMsgOpenSession(playerName);
-
-                //mConnectionViewModel.sendMessage(message);
-
-                killTimer=true;
-
-                break;
-
-            case CONNECTING:
-
-                Log.d("DomLog", "onSocketStatusChanged() CONNECTING ("+mElapsedTime+")");
-
-                break;
-
-            case DATA_READ:
-
-                String dataRead=mLastConnectionEvent.getDataRead();
-
-                Log.d("DomLog", "onSocketStatusChanged() DATA_READ ("+dataRead+")");
-
-                break;
-
-            default:
-
-                Log.d("DomLog", "onSocketStatusChanged() DEFAULT");
-                break;
-        }
-
-        updateControls();
-
-        if (toastText!=null) {
-
-
-        }
-    }
-    */
-
     private void processMessage(Message msg) {
 
         if (msg.mId==MsgId.GAME_INFO) {
@@ -395,47 +323,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             game.processGameInfoMessage(msg);
 
-            /*
-            String statusText=msg.getArgument("status");
-
-            if (statusText == null) {
-
-                game.mStatus= Game.Status.NOT_STARTED;
-            }
-            else if (statusText.compareTo("notStarted")==0) {
-
-                game.mStatus= Game.Status.NOT_STARTED;
-            }
-            else if (statusText.compareTo("running")==0) {
-
-                game.mStatus= Game.Status.RUNNING;
-            }
-            else {
-
-                game.mStatus= Game.Status.NOT_STARTED;
-            }
-
-            game.mAllPlayerNames.clear();
-
-            game.mAllPlayerNames.add(msg.getArgument("player0"));
-            game.mAllPlayerNames.add(msg.getArgument("player1"));
-            game.mAllPlayerNames.add(msg.getArgument("player2"));
-            game.mAllPlayerNames.add(msg.getArgument("player3"));
-            */
-
-            //session.mConnection=mConnectionViewModel.getConnection();
-
             DominooApplication app=(DominooApplication)getApplication();
             app.setGame(game);
             app.setCommSocket(mApp.mCommSocket);
-
-            //mLoginViewModel.interruptSocket();
 
             switch(game.mStatus) {
 
                 case NOT_STARTED:
                 case RUNNING:
                 case FINISHED:
+                case CANCELLED:
 
                     // Launch Game Management Activity...
                     Intent intent = new Intent(this, GameManagementActivity.class);
@@ -453,41 +350,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     toast.setGravity(Gravity.CENTER, 0, 0);
 
                     toast.show();
-
-
-
             }
-
-            /*
-            if ((game.mStatus == Game.Status.NOT_STARTED) ||
-                (game.mStatus == Game.Status.FINISHED)) {
-
-                // Game has not started or has finished.
-                // Launch Game Management Activity...
-
-                Intent intent = new Intent(this, GameManagementActivity.class);
-                startActivity(intent);
-            }
-            else if (game.mStatus == Game.Status.RUNNING) {
-
-                // Game is running. Launch Game Board Activity...
-
-                //Intent intent = new Intent(this, GameBoardActivity.class);
-
-                Intent intent = new Intent(this, GameManagementActivity.class);
-                startActivity(intent);
-            }
-            else {
-
-                Toast toast = Toast.makeText(this,
-                        R.string.unknown_game_status,
-                        Toast.LENGTH_LONG);
-
-                toast.setGravity(Gravity.CENTER, 0, 0);
-
-                toast.show();
-            }
-            */
         }
         else if (msg.mId== Message.MsgId.GAME_TILE_INFO) {
 

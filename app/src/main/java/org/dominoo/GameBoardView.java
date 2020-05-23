@@ -1,10 +1,14 @@
 package org.dominoo;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
@@ -23,6 +27,11 @@ public class GameBoardView extends View {
 
     private static final float TILE_LIMITS_HOR_SCALE = 4;
     private static final float TILE_LIMITS_VER_SCALE = 8;
+
+    private static final float EXIT_BUTTON_MARGIN = 5;
+    private static final float EXIT_BUTTON_SIZE = 100;
+
+    RectF mExitButtonRect = null;
 
     private Game.PlayerPos mTurnPlayer = Game.PlayerPos.NONE;
     private Game.PlayerPos mHandPlayer = Game.PlayerPos.NONE;
@@ -49,9 +58,11 @@ public class GameBoardView extends View {
 
     private boolean mDrawTestLines = false;
 
+    public boolean mDrawExitButton = false;
+
     private float mOffsetY = 0;
 
-    OnTilePlayedListener mListener = null;
+    OnGameBoardViewListener mListener = null;
 
     DominoTile mSelectedTile = null;
 
@@ -64,9 +75,10 @@ public class GameBoardView extends View {
         DOWN
     }
 
-    public interface OnTilePlayedListener {
+    public interface OnGameBoardViewListener {
 
         void onTilePlayed(DominoTile selectedTile, int boardSide);
+        void onExitButtonClicked();
     }
 
     public GameBoardView(Context context) {
@@ -89,6 +101,8 @@ public class GameBoardView extends View {
         super.onDraw(canvas);
 
         RectF borderRect = drawBorder(canvas);
+
+        drawExitButton(canvas);
 
         drawPlayerNames(canvas, borderRect);
 
@@ -185,6 +199,48 @@ public class GameBoardView extends View {
         }
 
         return borderRect;
+    }
+
+    private void drawExitButton(Canvas canvas) {
+
+        if (!mDrawExitButton) {
+
+            return;
+        }
+
+        mExitButtonRect = new RectF(EXIT_BUTTON_MARGIN, EXIT_BUTTON_MARGIN,
+                                    EXIT_BUTTON_SIZE, EXIT_BUTTON_SIZE);
+
+        Paint paint=new Paint();
+
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(5);
+
+        Resources res = getResources();
+        Bitmap bitmap = BitmapFactory.decodeResource(res,
+                android.R.drawable.ic_menu_close_clear_cancel);
+
+        //canvas.drawBitmap(bitmap, 0, 0, paint);
+
+        Rect srcRect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        canvas.drawBitmap(bitmap, srcRect, mExitButtonRect, paint);
+
+        /*
+        canvas.drawRect(mExitButtonRect, paint);
+
+        canvas.drawLine(
+                mExitButtonRect.left+EXIT_BUTTON_MARGIN,
+                mExitButtonRect.top+EXIT_BUTTON_MARGIN,
+                mExitButtonRect.right+EXIT_BUTTON_MARGIN,
+                mExitButtonRect.bottom+EXIT_BUTTON_MARGIN,
+                paint);
+        */
+
+
     }
 
     private void drawPlayerNames(Canvas canvas, RectF borderRect) {
@@ -527,23 +583,6 @@ public class GameBoardView extends View {
 
     private void drawBoardTiles1(Canvas canvas, RectF borderRect, float tileLength) {
 
-        /*
-        mBoardTiles1.clear();
-        mBoardTiles1.add(new DominoTile(6, 6));
-        mBoardTiles1.add(new DominoTile(6, 0));
-        mBoardTiles1.add(new DominoTile(0, 1));
-        mBoardTiles1.add(new DominoTile(1, 2));
-        mBoardTiles1.add(new DominoTile(2, 2));
-        mBoardTiles1.add(new DominoTile(2, 3));
-        mBoardTiles1.add(new DominoTile(3, 3));
-        mBoardTiles1.add(new DominoTile(3, 4));
-        //mBoardTiles1.add(new DominoTile(4, 4));
-        mBoardTiles1.add(new DominoTile(4, 5));
-        mBoardTiles1.add(new DominoTile(5, 5));
-        mBoardTiles1.add(new DominoTile(5, 6));
-        mBoardTiles1.add(new DominoTile(6, 1));
-        */
-
         // Starting direction is to the right...
         Dir dir = Dir.RIGHT;
 
@@ -648,23 +687,6 @@ public class GameBoardView extends View {
 
     private void drawBoardTiles2(Canvas canvas, RectF borderRect, float tileLength) {
 
-        /*
-        mBoardTiles2.clear();
-        //mBoardTiles1.add(new DominoTile(6, 6));
-        mBoardTiles2.add(new DominoTile(6, 0));
-        mBoardTiles2.add(new DominoTile(0, 1));
-        mBoardTiles2.add(new DominoTile(1, 2));
-        mBoardTiles2.add(new DominoTile(2, 2));
-        mBoardTiles2.add(new DominoTile(2, 3));
-        mBoardTiles2.add(new DominoTile(3, 3));
-        mBoardTiles2.add(new DominoTile(3, 4));
-        //mBoardTiles2.add(new DominoTile(4, 4));
-        mBoardTiles2.add(new DominoTile(4, 5));
-        mBoardTiles2.add(new DominoTile(5, 6));
-        mBoardTiles2.add(new DominoTile(6, 1));
-        mBoardTiles2.add(new DominoTile(1, 1));
-        */
-
         // Starting direction is to the left...
         Dir dir = Dir.LEFT;
 
@@ -764,15 +786,6 @@ public class GameBoardView extends View {
         }
 
         mNextBoardTile2Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
-
-        /*
-        left = offsetX - tileLength;
-        right = offsetX;
-        top = offsetY-tileLength/4;
-        bottom = offsetY+tileLength/4;
-
-        mNextBoardTile2Rect = new RectF(left, top, right, bottom);
-        */
     }
 
     private RectF calculateTileRect(DominoTile tile, PointF pos, Dir dir, float tileLength) {
@@ -918,7 +931,7 @@ public class GameBoardView extends View {
         }
     }
 
-    public void setOnTilePlayedListener(OnTilePlayedListener listener) {
+    public void setGameBoardViewListener(OnGameBoardViewListener listener) {
 
         mListener = listener;
     }
@@ -960,11 +973,10 @@ public class GameBoardView extends View {
             }
         }
 
-        if ((x < 50) && (y < 50)) {
+        if ((mDrawExitButton) && (mExitButtonRect.contains(x, y))) {
 
-
-
-
+            // Clicked on the exit button...
+            mListener.onExitButtonClicked();
         }
 
         return false;

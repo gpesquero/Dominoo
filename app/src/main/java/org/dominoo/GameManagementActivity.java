@@ -9,16 +9,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class GameManagementActivity extends AppCompatActivity implements View.OnClickListener,
         CommSocket.CommSocketListener, DropdownButton.OnSelectionChangedListener {
@@ -211,31 +207,7 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
         toast.show();
 
         closeActivity();
-
-        /*
-        if (!sendRequestGameInfoMessage()) {
-
-            // Error sending message. Most probably connection is lost...
-            // Close activity...
-
-            closeActivity();
-        }
-        */
     }
-
-    /*
-    @Override
-    public void onConnectionLost() {
-
-        Toast toast = Toast.makeText(this,
-                "GameManagementActivity.onConnectionLost()",
-                Toast.LENGTH_LONG);
-
-        toast.setGravity(Gravity.CENTER, 0, 0);
-
-        toast.show();
-    }
-    */
 
     @Override
     public void onDataReceived(String data) {
@@ -307,34 +279,6 @@ public class GameManagementActivity extends AppCompatActivity implements View.On
             //Log.i("DomLog", "GameManagementActivity. Received Game Info Message");
 
             mApp.mGame.processGameInfoMessage(msg);
-
-            /*
-            mApp.mGame.mAllPlayerNames.clear();
-
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player0"));
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player1"));
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player2"));
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player3"));
-
-            String statusText=msg.getArgument("status");
-
-            if (statusText == null) {
-
-                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
-            }
-            else if (statusText.compareTo("notStarted")==0) {
-
-                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
-            }
-            else if (statusText.compareTo("running")==0) {
-
-                mApp.mGame.mStatus= Game.Status.RUNNING;
-            }
-            else {
-
-                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
-            }
-            */
 
             if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mMyPlayerName) <0 ) {
 

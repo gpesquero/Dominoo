@@ -1,7 +1,6 @@
 package org.dominoo;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,9 +16,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class GameBoardActivity extends AppCompatActivity implements CommSocket.CommSocketListener,
-    PlayerTilesView.OnTileSelectedListener, GameBoardView.OnTilePlayedListener,
-        View.OnClickListener {
+public class GameBoardActivity extends AppCompatActivity implements
+        CommSocket.CommSocketListener, PlayerTilesView.OnTileSelectedListener,
+        GameBoardView.OnGameBoardViewListener, View.OnClickListener {
 
     DominooApplication mApp = null;
 
@@ -46,7 +45,7 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         mApp = (DominooApplication)getApplication();
 
         mGameBoardView = findViewById(R.id.viewGameBoard);
-        mGameBoardView.setOnTilePlayedListener(this);
+        mGameBoardView.setGameBoardViewListener(this);
 
         mPlayerTilesView = findViewById(R.id.viewPlayerTiles);
         mPlayerTilesView.setOnTileSelectedListener(this);
@@ -68,22 +67,10 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         updateControls();
 
-        /*
-        // Create domino tiles
-        ArrayList<DominoTile> tiles = new ArrayList<DominoTile>();
-
-        tiles.add(new DominoTile(0, 1));
-        tiles.add(new DominoTile(2, 3));
-        tiles.add(new DominoTile(4, 5));
-        tiles.add(new DominoTile(6, 0));
-
-        mPlayerTilesView.mTiles = tiles;
-        */
-
         if (!mApp.sendMessageRequestTileInfo()) {
 
-            // Error sending message. Close activity...
-            closeActivity();
+            // Error sending message. Finish the activity...
+            finish();
         }
     }
 
@@ -95,8 +82,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         if (mApp.mCommSocket == null) {
 
-            //mApp.mCommSocket = new CommSocket();
-
             finish();
 
             return;
@@ -106,8 +91,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         if (!mApp.sendRequestGameInfoMessage()) {
 
-            // Error sending message. Close activity...
-            closeActivity();
+            // Error sending message. Finish the activity...
+            finish();
         }
     }
 
@@ -128,8 +113,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         super.onDestroy();
 
         Log.d("DomLog", "GameBoardActivity.onDestroy()");
-
-        //mApp.mCommSocket.setCommSocketListener(null);
     }
 
     @Override
@@ -138,6 +121,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
     }
 
     private void updateControls() {
+
+        mGameBoardView.mDrawExitButton = mApp.mAllowLaunchGames;
 
         mGameBoardView.setTurnPlayer(mApp.mGame.mTurnPlayerPos);
 
@@ -166,23 +151,15 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         checkPassTurnButton();
     }
 
+    /*
     private void closeActivity() {
 
-        /*
-        mApp.mGame = null;
-        mApp.setGame(null);
 
-        mApp.mCommSocket.close();
-        */
-
-        //mApp.mCommSocket.setCommSocketListener(null);
-
-        //mApp.mCommSocket = null;
-        //mApp.setCommSocket(null);
 
         // Finish the activity
         finish();
     }
+    */
 
     @Override
     public void onConnectionEstablished() {
@@ -233,8 +210,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         toast.setGravity(Gravity.CENTER,0, 0);
 
         toast.show();
-
-        //closeActivity();
     }
 
     @Override
@@ -248,7 +223,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         toast.show();
 
-        closeActivity();
+        // Finish activity
+        finish();
     }
 
     @Override
@@ -267,7 +243,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         toast.show();
 
-        closeActivity();
+        // Finish activity
+        finish();
     }
 
     private void processMessage(Message msg) {
@@ -278,55 +255,19 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             mApp.mGame.processGameInfoMessage(msg);
 
-            /*
-            mApp.mGame.mAllPlayerNames.clear();
-
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player0"));
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player1"));
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player2"));
-            mApp.mGame.mAllPlayerNames.add(msg.getArgument("player3"));
-
-            String statusText=msg.getArgument("status");
-
-            if (statusText == null) {
-
-                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
-            }
-            else if (statusText.compareTo("notStarted")==0) {
-
-                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
-            }
-            else if (statusText.compareTo("running")==0) {
-
-                mApp.mGame.mStatus= Game.Status.RUNNING;
-            }
-            else if (statusText.compareTo("finished")==0) {
-
-                mApp.mGame.mStatus= Game.Status.FINISHED;
-            }
-            else {
-
-                mApp.mGame.mStatus= Game.Status.NOT_STARTED;
-            }
-            */
-
             if (mApp.mGame.mAllPlayerNames.indexOf(mApp.mGame.mMyPlayerName) < 0 ) {
 
                 // We have not found our player name in the player list
                 //Log.i("DomLog", "Player name not found in player list. Close Activity");
 
-                // We have to close the Activity
-                closeActivity();
+                // We have to finish the activity
+                finish();
+            }
+            else if (mApp.mGame.mStatus == Game.Status.CANCELLED) {
+
+                showGameCancelledDialog();
             }
             else {
-
-                /*
-                if (mApp.mGame.mStatus == Game.Status.RUNNING) {
-
-                    Intent intent=new Intent(this, GameBoardActivity.class);
-                    startActivity(intent);
-                }
-                */
 
                 mApp.mGame.mPair1Points = Integer.parseInt(msg.getArgument("pair1Points"));
                 mApp.mGame.mPair2Points = Integer.parseInt(msg.getArgument("pair2Points"));
@@ -383,7 +324,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
                         Log.e("DomLog", "Msg.GameTileInfo.processMessage() Unknown playerpos");
                         break;
                 }
-
             }
 
             updateControls();
@@ -544,8 +484,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
                                 if (!mApp.sendMessageRequestTileInfo()) {
 
-                                    // Error sending message. Close activity...
-                                    closeActivity();
+                                    // Error sending message. Finish the activity...
+                                    finish();
 
                                     return;
                                 }
@@ -568,8 +508,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
             }
 
             updateControls();
-
-            //status=won, winnerPlayerPos=3, player0Points=5, player1Points=6, player2Points=6, player3Points=0
         }
         else {
 
@@ -600,8 +538,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         if (!mApp.sendMessagePlayTile(tile, boardSide)) {
 
-            // Error sending message. Close activity...
-            closeActivity();
+            // Error sending message. Finish the activity...
+            finish();
 
             return;
         }
@@ -612,6 +550,37 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         }
 
         updateControls();
+    }
+
+    @Override
+    public void onExitButtonClicked() {
+
+        AlertDialog.Builder alertDialogBuilder = null;
+
+        alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder
+                .setTitle(R.string.game_cancellation)
+                .setMessage(R.string.do_you_want_to_cancel_the_game_)
+                .setCancelable(true)
+                .setNegativeButton(android.R.string.no, null)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        // Send the cancel game message
+                        mApp.sendCancelGameMessage();
+
+                        // Close the alert dialog
+                        dialog.cancel();
+                    }
+                });
+
+        // Create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // Show it
+        alertDialog.show();
     }
 
     private void checkPassTurnButton() {
@@ -685,8 +654,8 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             if (!mApp.sendMessagePlayTile(null, 0)) {
 
-                // Error sending message. Close activity...
-                closeActivity();
+                // Error sending message. Finish the activity...
+                finish();
             }
             else {
 
@@ -823,8 +792,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             text += String.valueOf(mApp.mGame.mPair1Points)+" + "+addingPoints+" = "+
                     getString(R.string.x_points, finalPair1Points);
-
-            //mApp.mGame.mPair1Points += addingPoints;
         }
         else {
 
@@ -842,8 +809,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             text += String.valueOf(mApp.mGame.mPair2Points)+" + "+addingPoints+" = "+
                     getString(R.string.x_points, finalPair2Points);
-
-            //mApp.mGame.mPair2Points += addingPoints;
         }
         else {
 
@@ -942,8 +907,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             text += String.valueOf(mApp.mGame.mPair1Points)+" + "+addingPoints+" = "+
                     getString(R.string.x_points, finalPair1Points);
-
-            //mApp.mGame.mPair1Points += addingPoints;
         }
         else {
 
@@ -961,8 +924,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
             text += String.valueOf(mApp.mGame.mPair2Points)+" + "+addingPoints+" = "+
                     getString(R.string.x_points, finalPair2Points);
-
-            //mApp.mGame.mPair2Points += addingPoints;
         }
         else {
 
@@ -994,8 +955,7 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
                         dialog.cancel();
 
                         // Finish the activity
-                        closeActivity();
-                        //finish();
+                        finish();
                     }
                 });
 
@@ -1007,16 +967,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
     }
 
     private String createGameFinishedMessage() {
-
-        /*
-        int playerPoints[] = mApp.mGame.mPlayerPoints;
-        int totalPoints =   playerPoints[0] + playerPoints[1] +
-                playerPoints[2] + playerPoints[3];
-
-        int addingPoints = (totalPoints-1) / 10 +1;
-
-        String winnerName = mApp.mGame.getPlayerName(winnerPlayerPos);
-        */
 
         int winningPair;
 
@@ -1033,23 +983,6 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
 
         text += "\n\n";
 
-        /*
-        text += getString(R.string.total_remaining_points_)+" ";
-
-        text += getString(R.string.x_points, totalPoints)+ " (+"+addingPoints+")";
-
-        text += "\n";
-
-        text += "(";
-        text += mApp.mGame.getPlayerName(0)+"="+playerPoints[0]+", ";
-        text += mApp.mGame.getPlayerName(1)+"="+playerPoints[1]+", ";
-        text += mApp.mGame.getPlayerName(2)+"="+playerPoints[2]+", ";
-        text += mApp.mGame.getPlayerName(3)+"="+playerPoints[3];
-        text += ")";
-
-        text += "\n\n";
-        */
-
         text += getString(R.string.pair_1)+" ("+mApp.mGame.mAllPlayerNames.get(0)+"+"+
                 mApp.mGame.mAllPlayerNames.get(2)+"): "+
                 getString(R.string.x_points, mApp.mGame.mPair1Points);
@@ -1063,5 +996,34 @@ public class GameBoardActivity extends AppCompatActivity implements CommSocket.C
         text += "\n";
 
         return text;
+    }
+
+    private void showGameCancelledDialog() {
+
+        AlertDialog.Builder alertDialogBuilder = null;
+
+        alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder
+                .setTitle(R.string.game_cancelled)
+                .setMessage(R.string.the_game_has_been_cancelled_)
+                .setCancelable(false)
+                .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        // Close the alert dialog
+                        dialog.cancel();
+
+                        // Finish the activity
+                        finish();
+                    }
+                });
+
+        // Create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // Show it
+        alertDialog.show();
     }
 }

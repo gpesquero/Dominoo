@@ -40,6 +40,15 @@ public class CommProtocol {
         return message;
     }
 
+    public static String createMsgCancelGame(String playerName) {
+
+        String message;
+
+        message="<cancel_game, playerName="+playerName+">";
+
+        return message;
+    }
+
     public static String createMsgRequestTileInfo(String playerName) {
 
         String message;
