@@ -63,6 +63,8 @@
 
     <string name="winner_is_pair_x">Winner is pair %1$d</string>
 
+    <string name="x_has_passed">\'%1$s\' has passed</string>
+    <string name="x_has_played_tile_y">\'%1$s\' has played tile \'%2$s\'</string>
     <string name="x_points">%1$d points</string>
 
 </resources>

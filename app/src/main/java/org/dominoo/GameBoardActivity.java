@@ -509,6 +509,35 @@ public class GameBoardActivity extends AppCompatActivity implements
 
             updateControls();
         }
+        else if (msg.mId == Message.MsgId.PLAYED_TILE_INFO) {
+
+            String playerName = msg.getArgument("playerName");
+
+            if (playerName.compareTo(mApp.mGame.mMyPlayerName) == 0) {
+
+                // Played tile info from ourselves
+                // There is no need to print played tile info
+
+                return;
+            }
+
+            String tileText = msg.getArgument("playedTile");
+
+            String toastText;
+
+            if (tileText.compareTo("null") == 0) {
+
+                toastText = getString(R.string.x_has_passed, playerName);
+            }
+            else {
+
+                toastText = getString(R.string.x_has_played_tile_y, playerName, tileText);
+            }
+
+            Toast toast = Toast.makeText(this, toastText, Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 100);
+            toast.show();
+        }
         else {
 
             Log.d("DomLog", "GameBoardActivity.processMessage() unknown message Id="+msg.mId);

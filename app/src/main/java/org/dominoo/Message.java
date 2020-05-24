@@ -12,7 +12,8 @@ public class Message {
         PLAYER_TILE_INFO,
         BOARD_TILE_INFO1,
         BOARD_TILE_INFO2,
-        ROUND_INFO
+        ROUND_INFO,
+        PLAYED_TILE_INFO
     };
 
     public MsgId mId=MsgId.UNKNOWN;

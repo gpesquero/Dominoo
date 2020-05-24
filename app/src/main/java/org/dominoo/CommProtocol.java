@@ -210,6 +210,10 @@ public class CommProtocol {
 
             msg.mId=MsgId.ROUND_INFO;
         }
+        else if (command.compareTo("played_tile_info")==0) {
+
+            msg.mId=MsgId.PLAYED_TILE_INFO;
+        }
         else {
 
             msg.mErrorString="Received message '"+line+"' with unknown command '"+command+"'";

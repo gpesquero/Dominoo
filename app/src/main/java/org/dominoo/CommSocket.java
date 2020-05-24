@@ -1,5 +1,6 @@
 package org.dominoo;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -26,27 +27,21 @@ public class CommSocket {
     private String mSocketErrorMessage = null;
 
     // Threads
-    //private ConnectToServerTask mConnectToServerTask = null;
     private ConnectToServerThread mConnectToServerThread = null;
     private SocketReaderThread mSocketReaderThread = null;
     private CommSocketListenerTask mCommSocketListenerTask = null;
+    //private CommSocketListenerThread mCommSocketListenerThread = null;
 
     // Event semaphore
     Semaphore mSemaphore = new Semaphore(0);
 
     private ArrayList<CommSocketEvent> mEventQueue = new ArrayList<CommSocketEvent>();
 
-    // Listener
-    //private ConnectionListener mListener = null;
-
-
-
     // ConnectionListener interface
     public interface CommSocketListener {
 
         void onConnectionEstablished();
         void onConnectionError(String errorMessage);
-        //void onConnectionLost();
         void onDataReceived(String data);
         void onDataReadError(String errorMessage);
         void onDataWriteError(String errorMessage);
@@ -96,9 +91,6 @@ public class CommSocket {
             return;
         }
 
-
-        //mListener = listener;
-
         mCommSocketListenerTask = new CommSocketListenerTask(listener);
 
         mCommSocketListenerTask.execute();
@@ -127,11 +119,6 @@ public class CommSocket {
     }
 
     public boolean connectToServer(String serverAddress, int serverPort, int maxTimeout) {
-
-        /*
-        mConnectToServerTask = new ConnectToServerTask(serverAddress, serverPort, maxTimeout);
-        mConnectToServerTask.execute();
-        */
 
         mConnectToServerThread = new ConnectToServerThread(serverAddress, serverPort, maxTimeout);
         mConnectToServerThread.start();
@@ -185,28 +172,7 @@ public class CommSocket {
 
             mConnectToServerThread = null;
         }
-
-        /*
-        if (mCommSocketListenerTask != null) {
-
-            mCommSocketListenerTask.cancel(true);
-
-            mCommSocketListenerTask = null;
-        }
-
-        mSemaphore = new Semaphore(0);
-        */
     }
-
-    /*
-    public void interruptSocket() {
-
-        if (mSocketReaderTask != null) {
-
-            mSocketReaderTask.cancel(true);
-        }
-    }
-    */
 
     public boolean sendMessage(final String message) {
 
@@ -222,7 +188,6 @@ public class CommSocket {
             try {
 
                 mSocketWriter = new PrintWriter(mSocket.getOutputStream(), true);
-
             }
             catch (IOException e) {
 
@@ -290,8 +255,6 @@ public class CommSocket {
 
                 mSocket.connect(address, mMaxTimeout);
 
-                //connectionEvent.mSocket = mSocket;
-
                 connectionEvent.setEventType(CommSocketEvent.Type.CONNECTED);
 
             } catch (IOException e) {
@@ -307,85 +270,7 @@ public class CommSocket {
         }
     }
 
-    /*
-    private class ConnectToServerTask extends AsyncTask<Void, Void, CommSocketEvent> {
-
-        private String mAddress;
-        private int mPort;
-        private int mMaxTimeout;
-
-        public ConnectToServerTask(String address, int port, int maxTimeout) {
-
-            mAddress = address;
-            mPort = port;
-            mMaxTimeout = maxTimeout;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected CommSocketEvent doInBackground(Void... params) {
-
-            InetSocketAddress address = new InetSocketAddress(mAddress, mPort);
-
-            CommSocketEvent connectionEvent = new CommSocketEvent();
-
-            try {
-
-                mSocket = new Socket();
-
-                mSocket.connect(address, mMaxTimeout);
-
-                //connectionEvent.mSocket = mSocket;
-
-                connectionEvent.setEventType(CommSocketEvent.Type.CONNECTED);
-
-            } catch (IOException e) {
-
-                connectionEvent.setEventType(CommSocketEvent.Type.CONNECT_ERROR);
-
-                connectionEvent.setEventErrorMessage("Socket connect error: "+e.getMessage());
-            }
-
-            return connectionEvent;
-        }
-
-        protected void onPostExecute(CommSocketEvent connectionEvent) {
-
-            mIsConnecting = false;
-
-            addEvent(connectionEvent);
-
-            mSemaphore.release();
-
-            //if (mListener!=null) {
-            //    mListener.onConnectionEvent(connectionEvent);
-            //}
-
-            //if (mSocket.isConnected()) {
-                // Launch socket reader...
-                //mSocketReaderTask = new SocketReaderTask();
-                //mSocketReaderTask.execute();
-            //}
-        }
-    }
-    */
-
     private class SocketReaderThread extends Thread {
-
-        private String mAddress;
-        private int mPort;
-        private int mMaxTimeout;
-
-        //public SocketReaderTask(String address, int port, int maxTimeout) {
-
-        //mAddress=address;
-        //mPort=port;
-        //mMaxTimeout=maxTimeout;
-        //}
 
         public void run() {
 
@@ -420,73 +305,6 @@ public class CommSocket {
             }
         }
     }
-
-    /*
-    private class SocketReaderTask extends AsyncTask<Void, Void, Void> {
-
-        private String mAddress;
-        private int mPort;
-        private int mMaxTimeout;
-
-        //public SocketReaderTask(String address, int port, int maxTimeout) {
-
-            //mAddress=address;
-            //mPort=port;
-            //mMaxTimeout=maxTimeout;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            //InetSocketAddress address=new InetSocketAddress(mAddress, mPort);
-
-            //SocketStatus socketStatus=new SocketStatus();
-
-            //Socket socket;
-
-            BufferedReader inputReader;
-
-            try {
-
-                inputReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
-
-                String inputLine;
-
-                while ((inputLine = inputReader.readLine()) != null) {
-
-                    if (mListener != null) {
-
-                        ConnectionEvent connectionEvent = new ConnectionEvent();
-
-                        connectionEvent.setEventType(ConnectionEvent.Type.DATA_READ);
-                        connectionEvent.setDataRead(inputLine);
-
-                        mListener.onConnectionEvent(connectionEvent);
-                    }
-                }
-            }
-            catch (IOException e) {
-
-                if (mListener != null) {
-
-                    ConnectionEvent connectionEvent = new ConnectionEvent();
-
-                    connectionEvent.setEventType(ConnectionEvent.Type.SOCKET_READ_ERROR);
-
-                    connectionEvent.setEventErrorMessage("Socket.readLine() Error: " + e.getMessage());
-
-                    mListener.onConnectionEvent(connectionEvent);
-                }
-            }
-
-            return null;
-        }
-
-        protected void onPostExecute(ConnectionEvent socketStatus) {
-
-        }
-    }
-    */
 
     private class CommSocketListenerTask extends AsyncTask<Void, CommSocketEvent, Void> {
 
@@ -605,4 +423,131 @@ public class CommSocket {
 
         }
     }
+
+    /*
+    private class CommSocketListenerThread extends Thread {
+
+        private CommSocketListener mListener = null;
+
+        boolean bContinue = true;
+
+        public CommSocketListenerThread(CommSocketListener listener) {
+
+            if (listener != null) {
+
+                if (Activity.class.isInstance(listener)) {
+
+                    mListener = listener;
+                }
+                else {
+
+                    throw new ClassCastException();
+                }
+            }
+        }
+
+        public void run() {
+
+            while(bContinue) {
+
+                try {
+
+                    mSemaphore.acquire();
+
+                    final CommSocketEvent event=getEvent();
+
+                    if (mListener != null) {
+
+                        Activity activity = (Activity) mListener;
+
+                        activity.runOnUiThread(new Runnable() {
+
+                            @Override
+                            public void run() {
+
+                                dispatchEventToListener(event);
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void dispatchEventToListener(CommSocketEvent event) {
+
+            if (mListener == null) {
+
+                return;
+            }
+
+            switch (event.getEventType()) {
+
+                case CONNECTED:
+
+                    //Log.i("DomLog", "commEvent: CONNECTED");
+
+                    mListener.onConnectionEstablished();
+
+                    startSocketReader();
+
+                    break;
+
+                case CONNECT_ERROR:
+
+                    //Log.i("DomLog", "commEvent: CONNECT ERROR");
+
+                    mListener.onConnectionError(event.getEventErrorMessage());
+
+                    break;
+
+                case DATA_READ:
+
+                    //Log.i("DomLog", "commEvent: DATA READ");
+
+                    mListener.onDataReceived(event.getDataRead());
+
+                    break;
+
+                case DATA_SENT:
+
+                    //Log.i("DomLog", "commEvent: DATA SENT");
+
+                    mListener.onDataSent();
+
+                    break;
+
+                case SOCKET_READ_ERROR:
+
+                    //Log.i("DomLog", "commEvent: SOCKET READ ERROR");
+
+                    mListener.onDataReadError(event.getEventErrorMessage());
+
+                    break;
+
+                case SOCKET_WRITE_ERROR:
+
+                    //Log.i("DomLog", "commEvent: SOCKET WRITE ERROR");
+
+                    mListener.onDataWriteError(event.getEventErrorMessage());
+
+                    break;
+
+                case SOCKET_CLOSED:
+
+                    //Log.i("DomLog", "commEvent: SOCKET CLOSED");
+
+                    mListener.onSocketClosed();
+
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
+    }
+    */
 }

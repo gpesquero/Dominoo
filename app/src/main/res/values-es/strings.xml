@@ -59,6 +59,8 @@
 
     <string name="winner_is_pair_x">El ganador es la pareja %1$d</string>
 
+    <string name="x_has_passed">\'%1$s\' ha pasado</string>
+    <string name="x_has_played_tile_y">\'%1$s\' ha jugado la ficha \'%2$s\'</string>
     <string name="x_points">%1$d puntos</string>
 
 </resources>
