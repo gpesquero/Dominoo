@@ -1,8 +1,9 @@
 package org.dominoo;
 
+import java.io.PrintWriter;
 import java.net.Socket;
 
-public class CommSocketEvent {
+public class CommSocketEvent extends ThreadEvent {
 
     public enum Type {
 
@@ -14,17 +15,15 @@ public class CommSocketEvent {
         DATA_SENT,
         SOCKET_READ_ERROR,
         SOCKET_WRITE_ERROR,
-        SOCKET_CLOSED
+        SOCKET_CLOSED,
+        WRITE_DATA
     }
 
-    //public Socket mSocket=null;
-    //public Connection mConnection = null;
     private Type mEventType = Type.UNKNOWN;
+    private Socket mSocket = null;
+    private PrintWriter mSocketWriter = null;
     private String mEventErrorMessage = null;
-    private String mDataRead = null;
-
-    //private int mElapsedTime=0;
-    //private int mMaxTimeout=0;
+    private String mData = null;
 
     public CommSocketEvent() {
 
@@ -45,6 +44,26 @@ public class CommSocketEvent {
         return mEventType;
     }
 
+    void setSocket(Socket socket) {
+
+        mSocket = socket;
+    }
+
+    Socket getSocket() {
+
+        return mSocket;
+    }
+
+    void setSocketWriter(PrintWriter socketWriter) {
+
+        mSocketWriter = socketWriter;
+    }
+
+    PrintWriter getSocketWriter() {
+
+        return mSocketWriter;
+    }
+
     void setEventErrorMessage(String errorMessage) {
 
         mEventErrorMessage = errorMessage;
@@ -55,13 +74,13 @@ public class CommSocketEvent {
         return mEventErrorMessage;
     }
 
-    void setDataRead(String data) {
+    void setData(String data) {
 
-        mDataRead = data;
+        mData = data;
     }
 
-    String getDataRead() {
+    String getData() {
 
-        return mDataRead;
+        return mData;
     }
 }

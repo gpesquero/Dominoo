@@ -7,6 +7,7 @@
     <string name="connecting_">Connecting…</string>
     <string name="connection_successful">Connection to server successful</string>
 
+    <string name="default_player_name">\'Player0\'</string>
     <string name="do_you_want_to_cancel_the_game_">Do you want to cancel the game?</string>
     <string name="do_you_want_to_exit_">Do you want to exit?</string>
 
@@ -41,6 +42,7 @@
     <string name="player_has_closed_the_round">The player \'%1$s\' has closed the round.</string>
     <string name="player_name_">Player name:</string>
     <string name="player_name_has_special_char">Player name has special characters. Use only letters and numbers</string>
+    <string name="player_name_is_ok" translatable="false">Player name is Ok!</string>
     <string name="player_name_is_too_long">Player name is too long.</string>
     <string name="player_name_is_too_short">Player name is too short.</string>
 

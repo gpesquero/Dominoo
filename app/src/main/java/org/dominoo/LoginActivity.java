@@ -3,6 +3,7 @@ package org.dominoo;
 import org.dominoo.Message.MsgId;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,11 +12,13 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -30,15 +33,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     TextView mTextViewVersion;
     ProgressBar mProgressBar;
     TextView mTextViewConnecting;
-    TextView mEditTextPlayerName;
+    TextView mTextViewPlayerName;
     Button mButtonConnect;
 
     // App private shared preferences
     SharedPreferences mPrefs;
 
     private LoginViewModel mLoginViewModel=null;
-
-    //private CommSocket mCommSocket = null;
 
     private DominooApplication mApp = null;
 
@@ -49,20 +50,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private final int PLAYER_NAME_MIN_LENGTH = 4;
     private final int PLAYER_NAME_MAX_LENGTH = 8;
-
-    /*
-    // Create the observer which updates the UI.
-    final Observer<CommSocketEvent> mSocketObserver = new Observer<CommSocketEvent>() {
-
-        @Override
-        public void onChanged(@Nullable final CommSocketEvent connectionEvent) {
-
-            Log.d("DomLog", "onChanged()");
-
-            onConnectionEvent(connectionEvent);
-        }
-    };
-    */
 
     private Runnable mTimerRunnable=new Runnable() {
 
@@ -99,11 +86,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mTextViewConnecting=findViewById(R.id.textViewConnecting);
 
-        mEditTextPlayerName=findViewById(R.id.editTextPlayerName);
+        String playerName = mPrefs.getString(getString(R.string.key_player_name),
+                getString(R.string.default_player_name));
 
-        String playerName = mPrefs.getString(getString(R.string.key_player_name), "");
-
-        mEditTextPlayerName.setText(playerName);
+        mTextViewPlayerName=findViewById(R.id.textViewPlayerName);
+        mTextViewPlayerName.setOnClickListener(this);
+        mTextViewPlayerName.setText(playerName);
 
         mButtonConnect = findViewById(R.id.buttonConnect);
         mButtonConnect.setOnClickListener(this);
@@ -113,13 +101,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mApp.loadPreferences(this, mPrefs);
 
         String versionString = getString(R.string.version_);
-        //versionString += String.format(" %d.%02d", mApp.VERSION_MAJOR, mApp.VERSION_MINOR);
         versionString += " " + BuildConfig.VERSION_NAME;
         mTextViewVersion.setText(versionString);
-
-        //Session session=app.getSession();
-
-        //mApp.mCommSocket=app.getCommSocket();
 
         if (mApp.mCommSocket == null) {
 
@@ -168,8 +151,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         Log.d("DomLog", "LoginActivity.onDestroy()");
 
-        //DominooApplication app=(DominooApplication)getApplication();
-
         if (mApp.mCommSocket != null) {
 
             mApp.mCommSocket.setCommSocketListener(null);
@@ -191,55 +172,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         prefEditor.putBoolean(getString(R.string.key_allow_launch_games), mApp.mAllowLaunchGames);
         prefEditor.commit();
 
-
         super.onDestroy();
     }
 
     @Override
     public void onClick(View view) {
 
-        if (view==mButtonConnect) {
+        if (view == mButtonConnect) {
 
-            String playerName=mEditTextPlayerName.getText().toString();
+            String playerName=mTextViewPlayerName.getText().toString().trim();
 
-            playerName=playerName.trim();
+            String resultString = checkPlayerName(playerName);
 
-            if (playerName.length()<PLAYER_NAME_MIN_LENGTH) {
+            if (resultString.compareTo(getString(R.string.player_name_is_ok)) != 0) {
 
-                Toast toast=Toast.makeText(this,
-                        getString(R.string.player_name_is_too_short)+"\n\n"+
-                        getString(R.string.insert_player_name_with_at_least_x_chars, PLAYER_NAME_MIN_LENGTH),
-                        Toast.LENGTH_SHORT);
+                Toast toast=Toast.makeText(this, resultString, Toast.LENGTH_SHORT);
 
                 toast.setGravity(Gravity.CENTER,0, 0);
 
-                toast.show();
-
-                return;
-            }
-
-            if (playerName.length() > PLAYER_NAME_MAX_LENGTH) {
-
-                Toast toast=Toast.makeText(this,
-                        getString(R.string.player_name_is_too_long)+"\n\n"+
-                        getString(R.string.maximum_player_name_length_is_x_characters, PLAYER_NAME_MAX_LENGTH),
-                        Toast.LENGTH_SHORT);
-
-                toast.setGravity(Gravity.CENTER, 0, 0);
-
-                toast.show();
-
-                return;
-            }
-
-            Pattern p=Pattern.compile("[^A-Za-z0-9]");
-            Matcher m=p.matcher(playerName);
-
-            if (m.find()) {
-
-                Toast toast=Toast.makeText(this, R.string.player_name_has_special_char,
-                        Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
 
                 return;
@@ -249,17 +199,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             SharedPreferences.Editor prefEditor=mPrefs.edit();
             prefEditor.putString(getString(R.string.key_player_name), playerName);
             prefEditor.commit();
-
-            //updateControls();
-
-            /*
-            LiveData<ConnectionEvent> ldSocket=mConnectionViewModel.connectToServer(
-                    SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
-
-            //mSocketStatus=ldSocket.getValue();
-
-            ldSocket.observe(this, mSocketObserver);
-            */
 
             if (mApp.mCommSocket == null) {
 
@@ -275,8 +214,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 mApp.mCommSocket.setCommSocketListener(this);
             }
 
-            //mApp.mCommSocket.connectToServer(SERVER_ADDRESS, SERVER_PORT, MAX_TIMEOUT);
-
             mApp.mCommSocket.connectToServer(mApp.mServerAddress, mApp.mServerPort, MAX_TIMEOUT);
 
             mLoginViewModel.mElapsedTime = 0;
@@ -285,11 +222,95 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             updateControls();
         }
-        else if (view==mImageViewSettings) {
+        else if (view == mImageViewSettings) {
 
             Intent intent=new Intent(this, SettingsActivity.class);
             startActivity(intent);
         }
+        else if (view == mTextViewPlayerName) {
+
+            final EditText editTextPlayerName = new EditText(this);
+
+            String playerName = mTextViewPlayerName.getText().toString().trim();
+
+            editTextPlayerName.setText(playerName);
+            editTextPlayerName.setGravity(Gravity.CENTER);
+
+            final AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setMessage(R.string.player_name_)
+                    .setView(editTextPlayerName)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create();
+
+            dialog.show();
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
+                    new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+
+                            String newPlayerName = editTextPlayerName.getText().toString().trim();
+
+                            String resultString = checkPlayerName(newPlayerName);
+
+                            if (resultString.compareTo(getString(R.string.player_name_is_ok))!=0) {
+
+                                Toast toast=Toast.makeText(getApplicationContext(),
+                                        resultString, Toast.LENGTH_SHORT);
+
+                                toast.setGravity(Gravity.CENTER,0, 0);
+
+                                toast.show();
+                            }
+                            else {
+
+                                mTextViewPlayerName.setText(newPlayerName);
+
+                                dialog.dismiss();
+                            }
+                        }
+                    }
+            );
+
+
+
+        }
+    }
+
+    private String checkPlayerName(String playerName) {
+
+        String resultString;
+
+        if (playerName.length() < PLAYER_NAME_MIN_LENGTH) {
+
+            resultString = getString(R.string.player_name_is_too_short) + "\n\n" +
+                    getString(R.string.insert_player_name_with_at_least_x_chars,
+                            PLAYER_NAME_MIN_LENGTH);
+        }
+        else if (playerName.length() > PLAYER_NAME_MAX_LENGTH) {
+
+            resultString = getString(R.string.player_name_is_too_long) + "\n\n" +
+                    getString(R.string.maximum_player_name_length_is_x_characters,
+                            PLAYER_NAME_MAX_LENGTH);
+        }
+        else {
+
+            Pattern p = Pattern.compile("[^A-Za-z0-9]");
+            Matcher m = p.matcher(playerName);
+
+            if (m.find()) {
+
+                resultString = getString(R.string.player_name_has_special_char);
+            }
+            else {
+
+                resultString = getString(R.string.player_name_is_ok);
+            }
+        }
+
+        return resultString;
     }
 
     private void updateControls() {
@@ -298,7 +319,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             mProgressBar.setVisibility(View.VISIBLE);
             mTextViewConnecting.setVisibility(View.VISIBLE);
-            mEditTextPlayerName.setEnabled(false);
+            mTextViewPlayerName.setEnabled(false);
             mButtonConnect.setEnabled(false);
 
             mProgressBar.setMax(MAX_TIMEOUT);
@@ -308,7 +329,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             mProgressBar.setVisibility(View.INVISIBLE);
             mTextViewConnecting.setVisibility(View.INVISIBLE);
-            mEditTextPlayerName.setEnabled(true);
+            mTextViewPlayerName.setEnabled(true);
             mButtonConnect.setEnabled(true);
         }
     }
@@ -319,7 +340,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             Game game=new Game();
 
-            game.mMyPlayerName=mEditTextPlayerName.getText().toString();
+            game.mMyPlayerName=mTextViewPlayerName.getText().toString();
 
             game.processGameInfoMessage(msg);
 
@@ -405,11 +426,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         updateControls();
 
         // Request open session to server...
-        String playerName=mEditTextPlayerName.getText().toString();
-
-        String message=CommProtocol.createMsgLogin(playerName);
-
-        mApp.mCommSocket.sendMessage(message);
+        mApp.sendLoginMessage(mTextViewPlayerName.getText().toString());
     }
 
     @Override
@@ -425,13 +442,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         updateControls();
     }
-
-    /*
-    @Override
-    public void onConnectionLost() {
-
-    }
-    */
 
     @Override
     public void onDataReceived(String data) {

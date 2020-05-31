@@ -13,7 +13,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
-public class CommSocket {
+public class CommSocket implements ConnectToServerThread.ConnectToServerThreadListener,
+        SocketReaderThread.SocketReaderThreadListener,
+        SocketWriterThread.SocketWriterThreadListener {
 
     // Socket
     private Socket mSocket = null;
@@ -21,7 +23,7 @@ public class CommSocket {
     private boolean mIsConnecting = false;
 
     // Print Writer
-    private PrintWriter mSocketWriter = null;
+    //private PrintWriter mSocketWriter = null;
 
     // Last Socket Error Message
     private String mSocketErrorMessage = null;
@@ -29,15 +31,18 @@ public class CommSocket {
     // Threads
     private ConnectToServerThread mConnectToServerThread = null;
     private SocketReaderThread mSocketReaderThread = null;
-    private CommSocketListenerTask mCommSocketListenerTask = null;
+    private SocketWriterThread mSocketWriterThread = null;
+    //private CommSocketListenerTask mCommSocketListenerTask = null;
     //private CommSocketListenerThread mCommSocketListenerThread = null;
 
     // Event semaphore
-    Semaphore mSemaphore = new Semaphore(0);
+    //Semaphore mSemaphore = new Semaphore(0);
 
-    private ArrayList<CommSocketEvent> mEventQueue = new ArrayList<CommSocketEvent>();
+    //private ArrayList<CommSocketEvent> mEventQueue = new ArrayList<CommSocketEvent>();
 
-    // ConnectionListener interface
+    private CommSocketListener mListener = null;
+
+    // CommSocketListener interface
     public interface CommSocketListener {
 
         void onConnectionEstablished();
@@ -60,6 +65,7 @@ public class CommSocket {
 
     public CommSocketListener getCommSocketListener() {
 
+        /*
         CommSocketListener listener;
 
         if (mCommSocketListenerTask == null) {
@@ -72,12 +78,33 @@ public class CommSocket {
         }
 
         return listener;
+        */
+
+        return mListener;
     }
 
     public void setCommSocketListener(CommSocketListener listener) {
 
         Log.d("DomLog", "setCommSocketListener() listener= "+listener);
 
+        mListener = listener;
+
+        if (mConnectToServerThread != null) {
+
+            mConnectToServerThread.setListener(this);
+        }
+
+        if (mSocketReaderThread != null) {
+
+            mSocketReaderThread.setListener(this);
+        }
+
+        if (mSocketWriterThread != null) {
+
+            mSocketWriterThread.setListener(this);
+        }
+
+        /*
         if (mCommSocketListenerTask != null) {
 
             mCommSocketListenerTask.cancel(true);
@@ -94,19 +121,24 @@ public class CommSocket {
         mCommSocketListenerTask = new CommSocketListenerTask(listener);
 
         mCommSocketListenerTask.execute();
+        */
     }
 
+    /*
     synchronized private void addEvent(CommSocketEvent connectionEvent) {
 
         mEventQueue.add(connectionEvent);
 
         mSemaphore.release();
     }
+    */
 
+    /*
     synchronized private CommSocketEvent getEvent() {
 
         return mEventQueue.remove(0);
     }
+    */
 
     synchronized private void setIsConnecting(boolean isConnecting) {
 
@@ -121,6 +153,9 @@ public class CommSocket {
     public boolean connectToServer(String serverAddress, int serverPort, int maxTimeout) {
 
         mConnectToServerThread = new ConnectToServerThread(serverAddress, serverPort, maxTimeout);
+
+        mConnectToServerThread.setListener(this);
+
         mConnectToServerThread.start();
 
         setIsConnecting(true);
@@ -128,25 +163,39 @@ public class CommSocket {
         return true;
     }
 
-    private void startSocketReader() {
+    private void startSocketThreads() {
 
-        mSocketReaderThread = new SocketReaderThread();
+        mSocketReaderThread = new SocketReaderThread(mSocket);
+
+        mSocketWriterThread = new SocketWriterThread(mSocket);
+
+        if (mListener != null) {
+
+            mSocketReaderThread.setListener(this);
+
+            mSocketWriterThread.setListener(this);
+        }
+
         mSocketReaderThread.start();
+
+        mSocketWriterThread.start();
     }
 
     public void close() {
 
+        /*
         if (mSocketWriter != null) {
 
             mSocketWriter.close();
 
             mSocketWriter = null;
         }
+        */
 
         if (mSocket != null) {
 
             try {
-                mSocketWriter = null;
+                //mSocketWriter = null;
 
                 mSocket.close();
 
@@ -164,6 +213,16 @@ public class CommSocket {
             mSocketReaderThread = null;
         }
 
+        if (mSocketWriterThread != null) {
+
+            mSocketWriterThread.close();
+
+            mSocketWriterThread.interrupt();
+
+            mSocketWriterThread = null;
+        }
+
+
         if (mConnectToServerThread != null) {
 
             mConnectToServerThread.interrupt();
@@ -176,33 +235,12 @@ public class CommSocket {
 
     public boolean sendMessage(final String message) {
 
-        if (mSocketWriter==null) {
+        if (mSocketWriterThread != null) {
 
-            if (mSocket == null) {
-
-                mSocketErrorMessage = "Socket==null";
-
-                return false;
-            }
-
-            try {
-
-                mSocketWriter = new PrintWriter(mSocket.getOutputStream(), true);
-            }
-            catch (IOException e) {
-
-                CommSocketEvent commSocketEvent = new CommSocketEvent();
-
-                commSocketEvent.setEventType(CommSocketEvent.Type.SOCKET_WRITE_ERROR);
-
-                commSocketEvent.setEventErrorMessage("Socket.sendMessage() Error: " + e.getMessage());
-
-                addEvent(commSocketEvent);
-
-                return false;
-            }
+            mSocketWriterThread.sendMessage(message);
         }
 
+        /*
         new Thread(new Runnable() {
 
             @Override
@@ -226,10 +264,12 @@ public class CommSocket {
                 addEvent(commSocketEvent);
             }
         }).start();
+        */
 
         return true;
     }
 
+    /*
     private class ConnectToServerThread extends Thread {
 
         private String mAddress;
@@ -269,7 +309,9 @@ public class CommSocket {
             addEvent(connectionEvent);
         }
     }
+    */
 
+    /*
     private class SocketReaderThread extends Thread {
 
         public void run() {
@@ -291,7 +333,7 @@ public class CommSocket {
                     commSocketEvent.setEventType(CommSocketEvent.Type.DATA_READ);
                     commSocketEvent.setDataRead(inputLine);
 
-                    addEvent(commSocketEvent);
+                    //addEvent(commSocketEvent);
                 }
             } catch (IOException e) {
 
@@ -301,11 +343,13 @@ public class CommSocket {
 
                 commSocketEvent.setEventErrorMessage("Socket.readLine() Error: " + e.getMessage());
 
-                addEvent(commSocketEvent);
+                //addEvent(commSocketEvent);
             }
         }
     }
+    */
 
+    /*
     private class CommSocketListenerTask extends AsyncTask<Void, CommSocketEvent, Void> {
 
         private CommSocketListener mListener = null;
@@ -423,6 +467,7 @@ public class CommSocket {
 
         }
     }
+    */
 
     /*
     private class CommSocketListenerThread extends Thread {
@@ -550,4 +595,66 @@ public class CommSocket {
         }
     }
     */
+
+    @Override
+    public void onConnectionEstablished(Socket socket) {
+
+        mSocket = socket;
+
+        setIsConnecting(false);
+
+        startSocketThreads();
+
+        if (mListener != null) {
+
+            mListener.onConnectionEstablished();
+        }
+    }
+
+    @Override
+    public void onConnectionError(String errorMessage) {
+
+        setIsConnecting(false);
+
+        if (mListener != null) {
+
+            mListener.onConnectionError(errorMessage);
+        }
+    }
+
+    @Override
+    public void onDataSent() {
+
+        if (mListener != null) {
+
+            mListener.onDataSent();
+        }
+    }
+
+    @Override
+    public void onDataWriteError(String errorMessage) {
+
+        if (mListener != null) {
+
+            mListener.onDataWriteError(errorMessage);
+        }
+    }
+
+    @Override
+    public void onDataReceived(String data) {
+
+        if (mListener != null) {
+
+            mListener.onDataReceived(data);
+        }
+    }
+
+    @Override
+    public void onDataReadError(String errorMessage) {
+
+        if (mListener != null) {
+
+            mListener.onDataReadError(errorMessage);
+        }
+    }
 }

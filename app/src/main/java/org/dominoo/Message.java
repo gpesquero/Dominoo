@@ -16,11 +16,11 @@ public class Message {
         PLAYED_TILE_INFO
     };
 
-    public MsgId mId=MsgId.UNKNOWN;
+    public MsgId mId = MsgId.UNKNOWN;
 
-    public String mErrorString=null;
+    public String mErrorString = null;
 
-    public HashMap<String, String> mArgs=new HashMap<String, String>();
+    public HashMap<String, String> mArgs = new HashMap<String, String>();
 
     public Message(MsgId id) {
 

@@ -2,9 +2,9 @@ package org.dominoo;
 
 import org.dominoo.Message.MsgId;
 
-public class CommProtocol {
+class CommProtocol {
 
-    public static String createMsgLogin(String playerName) {
+    static String createMsgLogin(String playerName) {
 
         String message;
 
@@ -13,7 +13,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgLogout(String playerName) {
+    static String createMsgLogout(String playerName) {
 
         String message;
 
@@ -22,7 +22,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgMovePlayer(String playerName, int newPos) {
+    static String createMsgMovePlayer(String playerName, int newPos) {
 
         String message;
 
@@ -31,7 +31,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgLaunchGame(String playerName) {
+    static String createMsgLaunchGame(String playerName) {
 
         String message;
 
@@ -40,7 +40,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgCancelGame(String playerName) {
+    static String createMsgCancelGame(String playerName) {
 
         String message;
 
@@ -49,7 +49,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgRequestTileInfo(String playerName) {
+    static String createMsgRequestTileInfo(String playerName) {
 
         String message;
 
@@ -58,7 +58,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgRequestGameInfo(String playerName) {
+    static String createMsgRequestGameInfo(String playerName) {
 
         String message;
 
@@ -67,7 +67,7 @@ public class CommProtocol {
         return message;
     }
 
-    public static String createMsgPlayTile(String playerName, int playerPos,
+    static String createMsgPlayTile(String playerName, int playerPos,
                                            DominoTile tile, int boardSide) {
 
         String tileString;
@@ -83,13 +83,13 @@ public class CommProtocol {
 
         String message;
 
-        message="<play_tile, playerName="+playerName+", playerPos="+playerPos+
+        message = "<play_tile, playerName="+playerName+", playerPos="+playerPos+
                 ", tile="+tileString+", boardSide="+boardSide+">";
 
         return message;
     }
 
-    static public Message processLine(String line) {
+    static Message processLine(String line) {
 
         Message msg=new Message(MsgId.UNKNOWN);
 
@@ -115,16 +115,16 @@ public class CommProtocol {
 
         if (line.length()<5) {
 
-            msg.mId=MsgId.UNKNOWN;
+            msg.mId = MsgId.UNKNOWN;
 
-            msg.mErrorString="Received message '"+line+"' is too short";
+            msg.mErrorString = "Received message '"+line+"' is too short";
 
             return msg;
         }
 
-        line=line.substring(1, line.length()-1);
+        line = line.substring(1, line.length()-1);
 
-        line.trim();
+        line = line.trim();
 
         String command;
         String args;

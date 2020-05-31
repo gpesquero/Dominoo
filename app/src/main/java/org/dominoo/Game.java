@@ -211,7 +211,8 @@ public class Game {
 
         if (mBoardTiles2.size() == 0) {
 
-            return mBoardTiles1.get(mBoardTiles1.size()-1).mNumber1;
+            // End number is number 1 of tile 0 of board 1
+            return mBoardTiles1.get(0).mNumber1;
         }
 
         return mBoardTiles2.get(mBoardTiles2.size()-1).mNumber2;

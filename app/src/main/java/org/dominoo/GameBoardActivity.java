@@ -618,6 +618,12 @@ public class GameBoardActivity extends AppCompatActivity implements
 
         int endNumber2 = mApp.mGame.getEndNumber2();
 
+        /*
+        String text = "EndNumbers= "+endNumber1+" & "+endNumber2;
+        Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+        toast.show();
+        */
+
         boolean activatePassTurn = true;
 
         if (mApp.mGame.mPlayerTiles == null) {

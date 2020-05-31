@@ -8,6 +8,7 @@
     <string name="connecting_">Conectando…</string>
     <string name="connection_successful">Conexión con el servidor satisfactoria</string>
 
+    <string name="default_player_name">\'Jugador0\'</string>
     <string name="do_you_want_to_cancel_the_game_">¿Quiere cancelar la partida?</string>
     <string name="do_you_want_to_exit_">¿Quiere salir?</string>
 

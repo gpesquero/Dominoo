@@ -55,6 +55,15 @@ public class DominooApplication extends Application {
                 DEFAULT_ALLOW_LAUNCH_GAMES);
     }
 
+    public boolean sendLoginMessage(String playerName) {
+
+        // Create <Login> message
+        String message = CommProtocol.createMsgLogin(playerName);
+
+        // Send the message to the server
+        return mCommSocket.sendMessage(message);
+    }
+
     public boolean sendLogoutMessage() {
 
         // Create <Logout> message
