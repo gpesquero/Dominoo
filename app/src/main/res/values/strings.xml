@@ -26,6 +26,7 @@
     <string name="key_player_name" translatable="false">key_player_name</string>
     <string name="key_server_address" translatable="false">key_server_address</string>
     <string name="key_server_port" translatable="false">key_server_port</string>
+    <string name="key_silent_mode_on" translatable="false">key_silent_mode_on</string>
 
     <string name="launch_game">Launch game</string>
     <string name="left_opponent_">Left opponent:</string>

@@ -3,6 +3,7 @@ package org.dominoo;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -15,10 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
 
 public class GameBoardActivity extends AppCompatActivity implements
         CommSocket.CommSocketListener, PlayerTilesView.OnTileSelectedListener,
-        GameBoardView.OnGameBoardViewListener, View.OnClickListener {
+        GameBoardView.OnGameBoardViewListener, View.OnClickListener,
+        TextToSpeech.OnInitListener {
 
     DominooApplication mApp = null;
 
@@ -34,6 +37,8 @@ public class GameBoardActivity extends AppCompatActivity implements
     TextView mTextViewPlayer3Name;
 
     Button mButtonPassTurn;
+
+    private TextToSpeech mTextToSpeech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +69,8 @@ public class GameBoardActivity extends AppCompatActivity implements
         mButtonPassTurn = findViewById(R.id.buttonPassTurn);
         mButtonPassTurn.setOnClickListener(this);
         mButtonPassTurn.setEnabled(false);
+
+        mTextToSpeech = new TextToSpeech(this, this);
 
         updateControls();
 
@@ -113,6 +120,12 @@ public class GameBoardActivity extends AppCompatActivity implements
         super.onDestroy();
 
         Log.d("DomLog", "GameBoardActivity.onDestroy()");
+
+        if (mTextToSpeech != null) {
+
+            mTextToSpeech.stop();
+            mTextToSpeech.shutdown();
+        }
     }
 
     @Override
@@ -123,6 +136,8 @@ public class GameBoardActivity extends AppCompatActivity implements
     private void updateControls() {
 
         mGameBoardView.mDrawExitButton = mApp.mAllowLaunchGames;
+
+        mGameBoardView.mSilentModeOn = mApp.mSilentModeOn;
 
         mGameBoardView.setTurnPlayer(mApp.mGame.mTurnPlayerPos);
 
@@ -468,6 +483,8 @@ public class GameBoardActivity extends AppCompatActivity implements
 
             if (alertString != null) {
 
+                speak(titleString);
+
                 AlertDialog.Builder alertDialogBuilder = null;
 
                 alertDialogBuilder = new AlertDialog.Builder(this);
@@ -523,20 +540,27 @@ public class GameBoardActivity extends AppCompatActivity implements
 
             String tileText = msg.getArgument("playedTile");
 
-            String toastText;
+            String text;
 
             if (tileText.compareTo("null") == 0) {
 
-                toastText = getString(R.string.x_has_passed, playerName);
+                text = getString(R.string.x_has_passed, playerName);
             }
             else {
 
-                toastText = getString(R.string.x_has_played_tile_y, playerName, tileText);
+                text = getString(R.string.x_has_played_tile_y, playerName, tileText);
             }
 
-            Toast toast = Toast.makeText(this, toastText, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
             toast.setGravity(Gravity.CENTER, 0, 100);
             toast.show();
+
+            if (mTextToSpeech != null) {
+
+                text = text.replace("-", " ");
+
+                speak(text);
+            }
         }
         else {
 
@@ -610,6 +634,14 @@ public class GameBoardActivity extends AppCompatActivity implements
 
         // Show it
         alertDialog.show();
+    }
+
+    @Override
+    public void onSilentModeClicked() {
+
+        mApp.mSilentModeOn = !mApp.mSilentModeOn;
+
+        updateControls();
     }
 
     private void checkPassTurnButton() {
@@ -1060,5 +1092,58 @@ public class GameBoardActivity extends AppCompatActivity implements
 
         // Show it
         alertDialog.show();
+    }
+
+    @Override
+    public void onInit(int status) {
+
+        String text;
+
+        if (status == TextToSpeech.SUCCESS) {
+
+            Locale locale = Locale.getDefault();
+
+            mTextToSpeech.setSpeechRate(2);
+
+            int ttsLang = mTextToSpeech.setLanguage(locale);
+
+            if (ttsLang == TextToSpeech.LANG_MISSING_DATA ||
+                    ttsLang == TextToSpeech.LANG_NOT_SUPPORTED) {
+
+                text = "TextToSpeech language <"+locale.getLanguage()+">  NOT supported!";
+            }
+            else {
+
+                text = "TextToSpeech language <"+locale.getLanguage()+"> supported!";
+
+                text = null;
+            }
+        }
+        else {
+
+            text = "TextToSpeech onInit() failed!!";
+        }
+
+        if (text != null) {
+
+            Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.CENTER, 0, 100);
+            toast.show();
+        }
+    }
+
+    private void speak(String text) {
+
+        if (mTextToSpeech == null) {
+
+            return;
+        }
+
+        if (mApp.mSilentModeOn) {
+
+            return;
+        }
+
+        mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
     }
 }

@@ -164,13 +164,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             mTimerHandler=null;
         }
 
-        // Store mApp preferences
-
-        SharedPreferences.Editor prefEditor=mPrefs.edit();
-        prefEditor.putString(getString(R.string.key_server_address), mApp.mServerAddress);
-        prefEditor.putInt(getString(R.string.key_server_port), mApp.mServerPort);
-        prefEditor.putBoolean(getString(R.string.key_allow_launch_games), mApp.mAllowLaunchGames);
-        prefEditor.commit();
+        mApp.savePreferences(this, mPrefs);
 
         super.onDestroy();
     }

@@ -1,8 +1,6 @@
 package org.dominoo;
 
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -11,10 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.Locale;
-
-public class SettingsActivity extends AppCompatActivity implements View.OnClickListener,
-        TextToSpeech.OnInitListener {
+public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText mEditTextServerAddress;
     private EditText mEditTextServerPort;
@@ -22,8 +17,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     private CheckBox mCheckboxAllowLaunchGames;
 
     private DominooApplication mApp = null;
-
-    private TextToSpeech mTTS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,27 +36,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         mButtonResetDefaultValues = findViewById(R.id.buttonResetDefaultValues);
         mButtonResetDefaultValues.setOnClickListener(this);
-
-        /*
-        mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-
-            @Override
-            public void onInit(int status) {
-
-                if (status==TextToSpeech.SUCCESS) {
-
-                    mTTS.setLanguage(Locale.ENGLISH);
-                }
-            }
-        });
-        */
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-
 
     }
 
@@ -108,31 +85,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         mApp.mAllowLaunchGames = mCheckboxAllowLaunchGames.isChecked();
 
         super.onBackPressed();
-    }
-
-    @Override
-    public void onInit(int status) {
-
-        String text;
-
-        if (status == TextToSpeech.SUCCESS) {
-
-            text = "TextToSpeech.onInit() status=SUCCESS";
-        }
-        else if (status == TextToSpeech.ERROR) {
-
-            text = "TextToSpeech.onInit() status=ERROR";
-        }
-        else {
-
-            text = "Other";
-        }
-
-        Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.show();
-
-        mTTS.setLanguage(Locale.ENGLISH);
     }
 }
 

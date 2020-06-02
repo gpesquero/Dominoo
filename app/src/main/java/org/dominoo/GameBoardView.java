@@ -25,13 +25,12 @@ public class GameBoardView extends View {
 
     private static final float TILE_SIZE_SCALE_FACTOR = 7;
 
-    private static final float TILE_LIMITS_HOR_SCALE = 4;
+    private static final float TILE_LIMITS_HOR_SCALE = 3;
+    //private static final float TILE_LIMITS_HOR_SCALE = 10;
     private static final float TILE_LIMITS_VER_SCALE = 8;
 
     private static final float EXIT_BUTTON_MARGIN = 5;
     private static final float EXIT_BUTTON_SIZE = 100;
-
-    RectF mExitButtonRect = null;
 
     private Game.PlayerPos mTurnPlayer = Game.PlayerPos.NONE;
     private Game.PlayerPos mHandPlayer = Game.PlayerPos.NONE;
@@ -60,6 +59,12 @@ public class GameBoardView extends View {
 
     public boolean mDrawExitButton = false;
 
+    private RectF mExitButtonRect = null;
+
+    public boolean mSilentModeOn = false;
+
+    private RectF mSilentModeRect = null;
+
     private float mOffsetY = 0;
 
     OnGameBoardViewListener mListener = null;
@@ -79,6 +84,7 @@ public class GameBoardView extends View {
 
         void onTilePlayed(DominoTile selectedTile, int boardSide);
         void onExitButtonClicked();
+        void onSilentModeClicked();
     }
 
     public GameBoardView(Context context) {
@@ -103,6 +109,8 @@ public class GameBoardView extends View {
         RectF borderRect = drawBorder(canvas);
 
         drawExitButton(canvas);
+
+        drawSilentMode(canvas, borderRect);
 
         drawPlayerNames(canvas, borderRect);
 
@@ -223,24 +231,45 @@ public class GameBoardView extends View {
         Bitmap bitmap = BitmapFactory.decodeResource(res,
                 android.R.drawable.ic_menu_close_clear_cancel);
 
-        //canvas.drawBitmap(bitmap, 0, 0, paint);
-
         Rect srcRect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
         canvas.drawBitmap(bitmap, srcRect, mExitButtonRect, paint);
+    }
 
-        /*
-        canvas.drawRect(mExitButtonRect, paint);
+    private void drawSilentMode(Canvas canvas, RectF borderRect) {
 
-        canvas.drawLine(
-                mExitButtonRect.left+EXIT_BUTTON_MARGIN,
-                mExitButtonRect.top+EXIT_BUTTON_MARGIN,
-                mExitButtonRect.right+EXIT_BUTTON_MARGIN,
-                mExitButtonRect.bottom+EXIT_BUTTON_MARGIN,
-                paint);
-        */
+        float left = borderRect.right-EXIT_BUTTON_MARGIN-EXIT_BUTTON_SIZE;
+        float right = left+EXIT_BUTTON_SIZE;
+        float top = EXIT_BUTTON_MARGIN;
+        float bottom = top+EXIT_BUTTON_SIZE;
 
+        mSilentModeRect = new RectF(left, top, right, bottom);
 
+        Paint paint=new Paint();
+
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(5);
+
+        int drawableId;
+
+        if (mSilentModeOn) {
+
+            drawableId = android.R.drawable.ic_lock_silent_mode;
+        }
+        else {
+
+            drawableId = android.R.drawable.ic_lock_silent_mode_off;
+        }
+
+        Resources res = getResources();
+        Bitmap bitmap = BitmapFactory.decodeResource(res, drawableId);
+
+        Rect srcRect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        canvas.drawBitmap(bitmap, srcRect, mSilentModeRect, paint);
     }
 
     private void drawPlayerNames(Canvas canvas, RectF borderRect) {
@@ -583,6 +612,44 @@ public class GameBoardView extends View {
 
     private void drawBoardTiles1(Canvas canvas, RectF borderRect, float tileLength) {
 
+        /*
+        mBoardTiles1.clear();
+        mBoardTiles1.add(new DominoTile(6, 6));
+        mBoardTiles1.add(new DominoTile(6, 5));
+        mBoardTiles1.add(new DominoTile(6, 4));
+        mBoardTiles1.add(new DominoTile(6, 3));
+        mBoardTiles1.add(new DominoTile(6, 2));
+        mBoardTiles1.add(new DominoTile(6, 1));
+        mBoardTiles1.add(new DominoTile(6, 0));
+
+        mBoardTiles1.add(new DominoTile(5, 5));
+        mBoardTiles1.add(new DominoTile(5, 4));
+        mBoardTiles1.add(new DominoTile(5, 3));
+        mBoardTiles1.add(new DominoTile(5, 2));
+        mBoardTiles1.add(new DominoTile(5, 1));
+        mBoardTiles1.add(new DominoTile(5, 0));
+
+        mBoardTiles1.add(new DominoTile(4, 4));
+        mBoardTiles1.add(new DominoTile(4, 3));
+        mBoardTiles1.add(new DominoTile(4, 2));
+        mBoardTiles1.add(new DominoTile(4, 1));
+        mBoardTiles1.add(new DominoTile(4, 0));
+
+        mBoardTiles1.add(new DominoTile(3, 3));
+        mBoardTiles1.add(new DominoTile(3, 2));
+        mBoardTiles1.add(new DominoTile(3, 1));
+        mBoardTiles1.add(new DominoTile(3, 0));
+
+        mBoardTiles1.add(new DominoTile(2, 2));
+        mBoardTiles1.add(new DominoTile(2, 1));
+        mBoardTiles1.add(new DominoTile(2, 0));
+
+        mBoardTiles1.add(new DominoTile(1, 1));
+        mBoardTiles1.add(new DominoTile(1, 0));
+
+        mBoardTiles1.add(new DominoTile(0, 0));
+        */
+
         // Starting direction is to the right...
         Dir dir = Dir.RIGHT;
 
@@ -683,6 +750,15 @@ public class GameBoardView extends View {
         }
 
         mNextBoardTile1Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
+
+        // Check if next board tile 1 rect is out of bounds...
+        if (mNextBoardTile1Rect.left < 0) {
+
+            float xOffset = -mNextBoardTile1Rect.left;
+
+            mNextBoardTile1Rect.left += xOffset;
+            mNextBoardTile1Rect.right += xOffset;
+        }
     }
 
     private void drawBoardTiles2(Canvas canvas, RectF borderRect, float tileLength) {
@@ -786,6 +862,15 @@ public class GameBoardView extends View {
         }
 
         mNextBoardTile2Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
+
+        // Check if next board tile 2 rect is out of bounds...
+        if (mNextBoardTile2Rect.right > borderRect.right) {
+
+            float xOffset = borderRect.right-mNextBoardTile2Rect.right;
+
+            mNextBoardTile2Rect.left += xOffset;
+            mNextBoardTile2Rect.right += xOffset;
+        }
     }
 
     private RectF calculateTileRect(DominoTile tile, PointF pos, Dir dir, float tileLength) {
@@ -977,6 +1062,12 @@ public class GameBoardView extends View {
 
             // Clicked on the exit button...
             mListener.onExitButtonClicked();
+        }
+
+        if (mSilentModeRect.contains(x, y)) {
+
+            // Clicked on the silent mode icon...
+            mListener.onSilentModeClicked();
         }
 
         return false;
