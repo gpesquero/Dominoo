@@ -27,7 +27,9 @@ public class GameBoardView extends View {
 
     private static final float TILE_LIMITS_HOR_SCALE = 3;
     //private static final float TILE_LIMITS_HOR_SCALE = 10;
+
     private static final float TILE_LIMITS_VER_SCALE = 8;
+    //private static final float TILE_LIMITS_VER_SCALE = 6;
 
     private static final float EXIT_BUTTON_MARGIN = 5;
     private static final float EXIT_BUTTON_SIZE = 100;
@@ -624,6 +626,7 @@ public class GameBoardView extends View {
 
         mBoardTiles1.add(new DominoTile(5, 5));
         mBoardTiles1.add(new DominoTile(5, 4));
+        mBoardTiles1.add(new DominoTile(4, 4));
         mBoardTiles1.add(new DominoTile(5, 3));
         mBoardTiles1.add(new DominoTile(5, 2));
         mBoardTiles1.add(new DominoTile(5, 1));
@@ -653,8 +656,8 @@ public class GameBoardView extends View {
         // Starting direction is to the right...
         Dir dir = Dir.RIGHT;
 
-        // Initial position is border center...
-        PointF pos = new PointF(borderRect.centerX(), borderRect.centerY());
+        // Set initial position...
+        PointF pos = new PointF(borderRect.centerX(), borderRect.centerY()/2);
 
         // Shift starting position...
         pos.x -= (tileLength/2);
@@ -700,7 +703,7 @@ public class GameBoardView extends View {
             else if ((dir == Dir.RIGHT) && (pos.x > mTileLimits.right)) {
 
                 // We have reached the right limit
-                // Change to down direction
+                // Change to DOWN direction
 
                 if (prevTile.isDouble()) {
 
@@ -718,7 +721,7 @@ public class GameBoardView extends View {
             else if ((dir == Dir.DOWN) && (pos.y > mTileLimits.bottom)) {
 
                 // We have reached the bottom limit
-                // Change to left direction
+                // Change to LEFT direction
 
                 if (prevTile.isDouble()) {
 
@@ -732,6 +735,42 @@ public class GameBoardView extends View {
                 }
 
                 dir = Dir.LEFT;
+            }
+            else if ((dir == Dir.LEFT) && (pos.x < mTileLimits.left)) {
+
+                // We have reached the left limit
+                // Change to UP direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x += (tileLength/4);
+                    pos.y -= (tileLength/2);
+                }
+                else {
+
+                    pos.x += (tileLength / 4);
+                    pos.y -= (tileLength / 4);
+                }
+
+                dir = Dir.UP;
+            }
+            else if ((dir == Dir.UP) && (pos.y < mTileLimits.top)) {
+
+                // We have reached the top limit
+                // Change to RIGHT direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x += (tileLength/2);
+                    pos.y += (tileLength/4);
+                }
+                else {
+
+                    pos.x += (tileLength / 4);
+                    pos.y += (tileLength / 4);
+                }
+
+                dir = Dir.RIGHT;
             }
 
             // Update the tile position
@@ -763,11 +802,51 @@ public class GameBoardView extends View {
 
     private void drawBoardTiles2(Canvas canvas, RectF borderRect, float tileLength) {
 
+        /*
+        mBoardTiles2.clear();
+        mBoardTiles2.clear();
+        mBoardTiles2.add(new DominoTile(6, 6));
+        mBoardTiles2.add(new DominoTile(6, 5));
+        mBoardTiles2.add(new DominoTile(6, 4));
+        mBoardTiles2.add(new DominoTile(6, 3));
+        mBoardTiles2.add(new DominoTile(6, 2));
+        mBoardTiles2.add(new DominoTile(6, 1));
+        mBoardTiles2.add(new DominoTile(6, 0));
+
+        mBoardTiles2.add(new DominoTile(5, 5));
+        mBoardTiles2.add(new DominoTile(5, 4));
+        mBoardTiles2.add(new DominoTile(4, 4));
+        mBoardTiles2.add(new DominoTile(5, 3));
+        mBoardTiles2.add(new DominoTile(5, 2));
+        mBoardTiles2.add(new DominoTile(5, 1));
+        mBoardTiles2.add(new DominoTile(5, 0));
+
+        mBoardTiles2.add(new DominoTile(4, 4));
+        mBoardTiles2.add(new DominoTile(4, 3));
+        mBoardTiles2.add(new DominoTile(4, 2));
+        mBoardTiles2.add(new DominoTile(4, 1));
+        mBoardTiles2.add(new DominoTile(4, 0));
+
+        mBoardTiles2.add(new DominoTile(3, 3));
+        mBoardTiles2.add(new DominoTile(3, 2));
+        mBoardTiles2.add(new DominoTile(3, 1));
+        mBoardTiles2.add(new DominoTile(3, 0));
+
+        mBoardTiles2.add(new DominoTile(2, 2));
+        mBoardTiles2.add(new DominoTile(2, 1));
+        mBoardTiles2.add(new DominoTile(2, 0));
+
+        mBoardTiles2.add(new DominoTile(1, 1));
+        mBoardTiles2.add(new DominoTile(1, 0));
+
+        mBoardTiles2.add(new DominoTile(0, 0));
+        */
+
         // Starting direction is to the left...
         Dir dir = Dir.LEFT;
 
-        // Initial position is border center...
-        PointF pos = new PointF(borderRect.centerX(), borderRect.centerY());
+        // Set initial position...
+        PointF pos = new PointF(borderRect.centerX(), borderRect.centerY()/2);
 
         if (mBoardTiles1.size() > 0) {
 
@@ -785,23 +864,20 @@ public class GameBoardView extends View {
             pos.y += mOffsetY;
         }
 
-        // Simulate any custom tile...
-        DominoTile tile = new DominoTile(0, 1);
-
         if (mBoardTiles2.size() < 1) {
 
-            mNextBoardTile2Rect = calculateTileRect(tile, pos, dir, tileLength);
+            mNextBoardTile2Rect = calculateTileRect(mDummyTile, pos, dir, tileLength);
 
             return;
         }
 
         RectF rect;
 
-        DominoTile prevTile = tile;
+        DominoTile prevTile = mDummyTile;
 
         for(int i=0; i<mBoardTiles2.size(); i++) {
 
-            tile = mBoardTiles2.get(i);
+            DominoTile tile = mBoardTiles2.get(i);
 
             // Check if we have to change direction...
 
@@ -812,16 +888,52 @@ public class GameBoardView extends View {
             else if ((dir == Dir.LEFT) && (pos.x < mTileLimits.left)) {
 
                 // We have reached the left limit
-                // Change to up direction
+                // Change to DOWN direction
 
                 if (prevTile.isDouble()) {
 
                     pos.x += (tileLength / 4);
-                    pos.y -= (tileLength / 2);
+                    pos.y += (tileLength / 2);
                 }
                 else {
 
                     pos.x += (tileLength / 4);
+                    pos.y += (tileLength / 4);
+                }
+
+                dir = Dir.DOWN;
+            }
+            else if ((dir == Dir.DOWN) && (pos.y > mTileLimits.bottom)) {
+
+                // We have reached the bottom limit
+                // Change to RIGHT direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x += (tileLength / 2);
+                    pos.y -= (tileLength / 4);
+                }
+                else {
+
+                    pos.x += (tileLength / 4);
+                    pos.y -= (tileLength / 4);
+                }
+
+                dir = Dir.RIGHT;
+            }
+            else if ((dir == Dir.RIGHT) && (pos.x > mTileLimits.right)) {
+
+                // We have reached the right limit
+                // Change to UP direction
+
+                if (prevTile.isDouble()) {
+
+                    pos.x -= (tileLength / 4);
+                    pos.y -= (tileLength / 2);
+                }
+                else {
+
+                    pos.x -= (tileLength / 4);
                     pos.y -= (tileLength / 4);
                 }
 
@@ -830,20 +942,20 @@ public class GameBoardView extends View {
             else if ((dir == Dir.UP) && (pos.y < mTileLimits.top)) {
 
                 // We have reached the top limit
-                // Change to right direction
+                // Change to LEFT direction
 
                 if (prevTile.isDouble()) {
 
-                    pos.x += (tileLength / 2);
+                    pos.x -= (tileLength / 2);
                     pos.y += (tileLength / 4);
                 }
                 else {
 
                     pos.x -= (tileLength / 4);
-                    pos.y -= (tileLength / 4);
+                    pos.y += (tileLength / 4);
                 }
 
-                dir = Dir.RIGHT;
+                dir = Dir.LEFT;
             }
 
             // Update the tile position
