@@ -552,12 +552,12 @@ public class GameBoardActivity extends AppCompatActivity implements
             }
 
             Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.setGravity(Gravity.CENTER, 0, -100);
             toast.show();
 
             if (mTextToSpeech != null) {
 
-                text = text.replace("-", " ");
+                text = prepareTextToSpeech(text);
 
                 speak(text);
             }
@@ -1145,5 +1145,59 @@ public class GameBoardActivity extends AppCompatActivity implements
         }
 
         mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
+    }
+
+    private String prepareTextToSpeech(String inText) {
+
+        // Eliminate the ''' characters
+        String outText = inText.replace("'", "").trim();
+
+        if (outText.indexOf("-") < 0) {
+
+            // No '-' character has been found. This is a pass text...
+
+            return outText;
+        }
+
+        // Eliminate the '-' character
+        outText = outText.replace("-", " ").trim();
+
+        String language = Locale.getDefault().getLanguage();
+
+        if (language.compareTo("es") == 0) {
+
+            int length = outText.length();
+
+            String tileString = outText.substring(length-3);
+
+            outText = outText.substring(0, length-3);
+
+            String aa = tileString.substring(0, 1);
+
+            int number1 = Integer.valueOf(aa);
+
+            String bb = tileString.substring(2, 3);
+
+            int number2 = Integer.valueOf(bb);
+
+            String numberStrings[]={
+                    "blanca", "pito", "dos", "tres", "cuatro", "cinco", "seis"
+            };
+
+            String tileSpeechText = numberStrings[number1] + " ";
+
+            if (number1 == number2) {
+
+                tileSpeechText += "doble";
+            }
+            else {
+
+                tileSpeechText += numberStrings[number2];
+            }
+
+            outText += tileSpeechText;
+        }
+
+        return outText;
     }
 }
