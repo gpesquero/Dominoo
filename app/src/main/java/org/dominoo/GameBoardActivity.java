@@ -450,6 +450,13 @@ public class GameBoardActivity extends AppCompatActivity implements
 
                 dialog.setGameInfo(mApp.mGame);
 
+                String title = dialog.getTitleString();
+
+                if (title != null) {
+
+                    speak(title);
+                }
+
                 // Show the dialog
                 dialog.show();
             }
@@ -739,7 +746,6 @@ public class GameBoardActivity extends AppCompatActivity implements
                 updateControls();
             }
         }
-        /*
         else if (v == mTextViewPair1XPoints) {
 
             //String alertString = createRoundFinishedMessage(0);
@@ -763,6 +769,7 @@ public class GameBoardActivity extends AppCompatActivity implements
             // Show it
             dialog.show();
         }
+        /*
         else if (v == mTextViewPair2XPoints) {
 
             String alertString = createRoundClosedMessage(0);

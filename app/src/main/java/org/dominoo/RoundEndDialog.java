@@ -16,10 +16,13 @@ public class RoundEndDialog {
 
     private AlertDialog mDialog = null;
 
+    private String mTitle = null;
+
     TextView mTextViewPair1Count;
     TextView mTextViewPair2Count;
 
     TextView[] mTextViewPlayerName;
+    TextView[] mTextViewPlayerPoints;
 
     PlayerTilesView[] mViewPlayerTiles;
 
@@ -50,6 +53,13 @@ public class RoundEndDialog {
         mTextViewPlayerName[1] = dialogView.findViewById(R.id.textViewPlayer1Name);
         mTextViewPlayerName[2] = dialogView.findViewById(R.id.textViewPlayer2Name);
         mTextViewPlayerName[3] = dialogView.findViewById(R.id.textViewPlayer3Name);
+
+        mTextViewPlayerPoints = new TextView[Game.MAX_PLAYERS];
+
+        mTextViewPlayerPoints[0] = dialogView.findViewById(R.id.textViewPlayer0Points);
+        mTextViewPlayerPoints[1] = dialogView.findViewById(R.id.textViewPlayer1Points);
+        mTextViewPlayerPoints[2] = dialogView.findViewById(R.id.textViewPlayer2Points);
+        mTextViewPlayerPoints[3] = dialogView.findViewById(R.id.textViewPlayer3Points);
 
         mViewPlayerTiles = new PlayerTilesView[Game.MAX_PLAYERS];
 
@@ -82,8 +92,6 @@ public class RoundEndDialog {
 
     public void setGameInfo(Game game) {
 
-        String title = null;
-
         int winningPair = 0;
 
         int pair1Count = game.mPlayersPoints[0] + game.mPlayersPoints[2];
@@ -94,21 +102,21 @@ public class RoundEndDialog {
 
         if (game.mWinnerPlayerPos >= 0) {
 
-            title = mActivity.getString(R.string.round_finished);
+            //title = mActivity.getString(R.string.round_finished);
 
             String winnerName = game.getPlayerName(game.mWinnerPlayerPos);
 
-            title = mActivity.getString(R.string.player_has_won_the_round, winnerName);
+            mTitle = mActivity.getString(R.string.player_has_won_the_round, winnerName);
 
             winningPair = (game.mWinnerPlayerPos % 2) +1;
         }
         else if (game.mCloserPlayerPos >= 0) {
 
-            title = mActivity.getString(R.string.round_closed);
+            //title = mActivity.getString(R.string.round_closed);
 
             String closerName = game.getPlayerName(game.mCloserPlayerPos);
 
-            title = mActivity.getString(R.string.player_has_closed_the_round, closerName);
+            mTitle = mActivity.getString(R.string.player_has_closed_the_round, closerName);
 
             if (pair1Count < pair2Count) {
 
@@ -147,7 +155,7 @@ public class RoundEndDialog {
             }
         }
 
-        mDialog.setTitle(title);
+        mDialog.setTitle(mTitle);
 
         mTextViewPair1Count.setText(mActivity.getString(R.string.pair_x_y_pts,
                 1, pair1Count));
@@ -157,8 +165,9 @@ public class RoundEndDialog {
 
         for(int i=0; i<Game.MAX_PLAYERS; i++) {
 
-            mTextViewPlayerName[i].setText(game.mAllPlayerNames.get(i) + " ("+
-                    mActivity.getString(R.string.x_points, game.mPlayersPoints[i]) + ")");
+            mTextViewPlayerName[i].setText(game.mAllPlayerNames.get(i));
+
+            mTextViewPlayerPoints[i].setText("(" + mActivity.getString(R.string.x_points, game.mPlayersPoints[i]) + ")");
 
             ArrayList<DominoTile> tiles = new ArrayList<DominoTile>();
 
@@ -219,5 +228,10 @@ public class RoundEndDialog {
         mTextViewPair1Points.setText(pair1Text);
 
         mTextViewPair2Points.setText(pair2Text);
+    }
+
+    public String getTitleString() {
+
+        return mTitle;
     }
 }
