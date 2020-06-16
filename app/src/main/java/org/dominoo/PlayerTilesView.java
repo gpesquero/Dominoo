@@ -116,21 +116,11 @@ public class PlayerTilesView extends View {
             tileHeight = tileWidth * 2;
         }
 
-        //return new SizeF(tileWidth, tileHeight);
-
         return tileHeight;
     }
 
     private void drawTiles(Canvas canvas, RectF borderRect, float tileHeight) {
 
-        /*
-        int NUMBER_OF_TILES = 7;
-
-        //float offsetX = rectBorder.width()/2+BORDER_MARGIN-(7*tileWidth+6*TILE_MARGIN)/2;
-        //float offsetY = rectBorder.height()/2+BORDER_MARGIN-tileHeight/2;
-        */
-
-        //float tileHeight = tileSize;
         mTileWidth = tileHeight/2;
 
         int tileCount = mTiles.size();
@@ -188,8 +178,6 @@ public class PlayerTilesView extends View {
             return false;
         }
 
-        //int index = Math.round((x-mOffsetX)/(rightX-mOffsetX)*(tileCount-1));
-
         mSelectedTile = (int)Math.floor((x-mOffsetX)/(rightX-mOffsetX)*(tileCount));
 
         if (mSelectedTile == tileCount) {
@@ -204,12 +192,12 @@ public class PlayerTilesView extends View {
             mListener.onTileSelected(clickedTile);
         }
 
+        /*
         Toast toast=Toast.makeText(getContext(), "Clicked tile: "+clickedTile.mNumber1+"-"+
                 clickedTile.mNumber2, Toast.LENGTH_SHORT);
-
-        //Toast toast=Toast.makeText(getContext(), "Touch Event, X="+x+", Y="+y, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER,0, 0);
-        //toast.show();
+        toast.show();
+        */
 
         invalidate();
 

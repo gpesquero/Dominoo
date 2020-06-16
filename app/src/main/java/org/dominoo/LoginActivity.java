@@ -101,7 +101,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mApp.loadPreferences(this, mPrefs);
 
         String versionString = getString(R.string.version_);
-        versionString += " " + BuildConfig.VERSION_NAME;
+        versionString += " " + mApp.mVersion;
         mTextViewVersion.setText(versionString);
 
         if (mApp.mCommSocket == null) {

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -166,16 +167,6 @@ public class GameBoardActivity extends AppCompatActivity implements
         checkPassTurnButton();
     }
 
-    /*
-    private void closeActivity() {
-
-
-
-        // Finish the activity
-        finish();
-    }
-    */
-
     @Override
     public void onConnectionEstablished() {
 
@@ -193,13 +184,6 @@ public class GameBoardActivity extends AppCompatActivity implements
         toast.show();
     }
 
-    /*
-    @Override
-    public void onConnectionLost() {
-
-    }
-    */
-
     @Override
     public void onDataReceived(String data) {
 
@@ -212,7 +196,6 @@ public class GameBoardActivity extends AppCompatActivity implements
         Message msg=CommProtocol.processLine(data);
 
         processMessage(msg);
-
     }
 
     @Override
@@ -353,7 +336,7 @@ public class GameBoardActivity extends AppCompatActivity implements
 
             //Log.i("DomLog", "Tile Count = "+tileCount);
 
-            mApp.mGame.mPlayerTiles = new ArrayList<DominoTile>();
+            mApp.mGame.mMyPlayerTiles = new ArrayList<DominoTile>();
 
             for(int i=0; i<tileCount; i++) {
 
@@ -369,12 +352,12 @@ public class GameBoardActivity extends AppCompatActivity implements
 
                 DominoTile tile = new DominoTile(number1, number2);
 
-                mApp.mGame.mPlayerTiles.add(tile);
+                mApp.mGame.mMyPlayerTiles.add(tile);
             }
 
-            DominoTile.sortTiles(mApp.mGame.mPlayerTiles);
+            DominoTile.sortTiles(mApp.mGame.mMyPlayerTiles);
 
-            mPlayerTilesView.setTiles(mApp.mGame.mPlayerTiles);
+            mPlayerTilesView.setTiles(mApp.mGame.mMyPlayerTiles);
 
             updateControls();
         }
@@ -434,53 +417,75 @@ public class GameBoardActivity extends AppCompatActivity implements
         }
         else if (msg.mId == Message.MsgId.ROUND_INFO) {
 
-            int roundCount = Integer.parseInt(msg.getArgument("roundCount"));
+            mApp.mGame.processGameRoundMessage(msg);
 
-            if (mApp.mGame.mRoundCount != roundCount) {
+            if ((mApp.mGame.mRoundStatus == Game.RoundStatus.CLOSED) ||
+                    (mApp.mGame.mRoundStatus == Game.RoundStatus.WON)) {
 
-                mApp.mGame.mRoundCount = roundCount;
+                RoundEndDialog dialog = new RoundEndDialog(this,
 
-                /*
-                String text = getString(R.string.starting_round_x_, roundCount);
+                        new DialogInterface.OnClickListener() {
 
-                Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
-                toast.setGravity(Gravity.CENTER,0, 0);
-                toast.show();
-                */
+                            public void onClick(DialogInterface dialog, int id) {
+
+                                dialog.cancel();
+
+                                if (!mApp.sendMessageRequestTileInfo()) {
+
+                                    // Error sending message. Finish the activity...
+                                    finish();
+
+                                    return;
+                                }
+
+                                if (mApp.mGame.mStatus == Game.Status.FINISHED) {
+
+                                    // Game has finished...
+                                    // Show closing message and quit...
+
+                                    showGameFinishedDialog();
+                                }
+                            }
+                        });
+
+                dialog.setGameInfo(mApp.mGame);
+
+                // Show the dialog
+                dialog.show();
             }
 
-            String roundStatus = msg.getArgument("status");
+            //dialog.setTitle(R.string.round_finished);
 
-            String alertString = null;
-            String titleString = null;
+            /*
+            dialog.setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
-            if (roundStatus.compareTo("won") == 0) {
+                        public void onClick(DialogInterface dialog, int id) {
 
-                int winnerPlayerPos = Integer.parseInt(msg.getArgument("winnerPlayerPos"));
+                            dialog.cancel();
 
-                mApp.mGame.mPlayerPoints[0] = Integer.parseInt(msg.getArgument("player0Points"));
-                mApp.mGame.mPlayerPoints[1] = Integer.parseInt(msg.getArgument("player1Points"));
-                mApp.mGame.mPlayerPoints[2] = Integer.parseInt(msg.getArgument("player2Points"));
-                mApp.mGame.mPlayerPoints[3] = Integer.parseInt(msg.getArgument("player3Points"));
+                            if (!mApp.sendMessageRequestTileInfo()) {
 
-                alertString = createRoundFinishedMessage(winnerPlayerPos);
+                                // Error sending message. Finish the activity...
+                                finish();
 
-                titleString = getString(R.string.round_finished);
-            }
-            else if (roundStatus.compareTo("closed") == 0) {
+                                return;
+                            }
 
-                int closerPlayerPos = Integer.parseInt(msg.getArgument("closerPlayerPos"));
+                            if (mApp.mGame.mStatus == Game.Status.FINISHED) {
 
-                mApp.mGame.mPlayerPoints[0] = Integer.parseInt(msg.getArgument("player0Points"));
-                mApp.mGame.mPlayerPoints[1] = Integer.parseInt(msg.getArgument("player1Points"));
-                mApp.mGame.mPlayerPoints[2] = Integer.parseInt(msg.getArgument("player2Points"));
-                mApp.mGame.mPlayerPoints[3] = Integer.parseInt(msg.getArgument("player3Points"));
+                                // Game has finished...
+                                // Show closing message and quit...
 
-                alertString = createRoundClosedMessage(closerPlayerPos);
+                                showGameFinishedDialog();
+                            }
+                        }
+                    });
 
-                titleString = getString(R.string.round_closed);
-            }
+            // Show it
+            dialog.show();
+            */
 
+            /*
             if (alertString != null) {
 
                 speak(titleString);
@@ -523,6 +528,7 @@ public class GameBoardActivity extends AppCompatActivity implements
                 // Show it
                 alertDialog.show();
             }
+            */
 
             updateControls();
         }
@@ -658,7 +664,7 @@ public class GameBoardActivity extends AppCompatActivity implements
 
         boolean activatePassTurn = true;
 
-        if (mApp.mGame.mPlayerTiles == null) {
+        if (mApp.mGame.mMyPlayerTiles == null) {
 
             activatePassTurn = false;
         }
@@ -676,7 +682,7 @@ public class GameBoardActivity extends AppCompatActivity implements
         }
         else {
 
-            Iterator<DominoTile> iter = mApp.mGame.mPlayerTiles.iterator();
+            Iterator<DominoTile> iter = mApp.mGame.mMyPlayerTiles.iterator();
 
             while (iter.hasNext()) {
 
@@ -734,19 +740,15 @@ public class GameBoardActivity extends AppCompatActivity implements
             }
         }
         /*
-        else if (v == mTextViewPair1Points) {
+        else if (v == mTextViewPair1XPoints) {
 
-            String alertString = createRoundFinishedMessage(0);
+            //String alertString = createRoundFinishedMessage(0);
 
-            AlertDialog.Builder alertDialogBuilder = null;
+            mApp.mGame.mWinnerPlayerPos = 1;
 
-            alertDialogBuilder = new AlertDialog.Builder(this);
+            RoundEndDialog dialog =new RoundEndDialog(this,
 
-            alertDialogBuilder
-                    .setTitle(R.string.round_finished)
-                    .setMessage(alertString)
-                    .setCancelable(false)
-                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    new DialogInterface.OnClickListener() {
 
                         public void onClick(DialogInterface dialog, int id) {
 
@@ -754,15 +756,14 @@ public class GameBoardActivity extends AppCompatActivity implements
                         }
                     });
 
-            // Create alert dialog
-            AlertDialog alertDialog = alertDialogBuilder.create();
+            dialog.setGameInfo(mApp.mGame);
+
+            //dialog.setTitle(R.string.round_finished);
 
             // Show it
-            alertDialog.show();
+            dialog.show();
         }
-        */
-        /*
-        else if (v == mTextViewPair2Points) {
+        else if (v == mTextViewPair2XPoints) {
 
             String alertString = createRoundClosedMessage(0);
 
@@ -789,41 +790,14 @@ public class GameBoardActivity extends AppCompatActivity implements
             alertDialog.show();
         }
         */
-        /*
-        else if (v == mTextViewPair2Points) {
-
-            String alertString = createGameFinishedMessage();
-
-            AlertDialog.Builder alertDialogBuilder = null;
-
-            alertDialogBuilder = new AlertDialog.Builder(this);
-
-            alertDialogBuilder
-                    .setTitle(R.string.game_finished)
-                    .setMessage(alertString)
-                    .setCancelable(false)
-                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int id) {
-
-                            dialog.cancel();
-                        }
-                    });
-
-            // Create alert dialog
-            AlertDialog alertDialog = alertDialogBuilder.create();
-
-            // Show it
-            alertDialog.show();
-        }
-        */
     }
 
+    /*
     private String createRoundFinishedMessage(int winnerPlayerPos) {
 
-        int playerPoints[] = mApp.mGame.mPlayerPoints;
-        int totalPoints =   playerPoints[0] + playerPoints[1] +
-                            playerPoints[2] + playerPoints[3];
+        int playersPoints[] = mApp.mGame.mPlayersPoints;
+        int totalPoints =   playersPoints[0] + playersPoints[1] +
+                            playersPoints[2] + playersPoints[3];
 
         int addingPoints = (totalPoints-1) / 10 +1;
 
@@ -842,10 +816,10 @@ public class GameBoardActivity extends AppCompatActivity implements
         text += "\n";
 
         text += "(";
-        text += mApp.mGame.getPlayerName(0)+"="+playerPoints[0]+", ";
-        text += mApp.mGame.getPlayerName(1)+"="+playerPoints[1]+", ";
-        text += mApp.mGame.getPlayerName(2)+"="+playerPoints[2]+", ";
-        text += mApp.mGame.getPlayerName(3)+"="+playerPoints[3];
+        text += mApp.mGame.getPlayerName(0)+"="+playersPoints[0]+", ";
+        text += mApp.mGame.getPlayerName(1)+"="+playersPoints[1]+", ";
+        text += mApp.mGame.getPlayerName(2)+"="+playersPoints[2]+", ";
+        text += mApp.mGame.getPlayerName(3)+"="+playersPoints[3];
         text += ")";
 
         text += "\n\n";
@@ -886,14 +860,16 @@ public class GameBoardActivity extends AppCompatActivity implements
 
         return text;
     }
+    */
 
+    /*
     private String createRoundClosedMessage(int closerPlayerPos) {
 
-        int playerPoints[] = mApp.mGame.mPlayerPoints;
+        int playersPoints[] = mApp.mGame.mPlayersPoints;
 
-        int pair1Points = playerPoints[0] + playerPoints[2];
+        int pair1Points = playersPoints[0] + playersPoints[2];
 
-        int pair2Points = playerPoints[1] + playerPoints[3];
+        int pair2Points = playersPoints[1] + playersPoints[3];
 
         int totalPoints = pair1Points + pair2Points;
 
@@ -938,14 +914,14 @@ public class GameBoardActivity extends AppCompatActivity implements
         text += "\n\n";
 
         text += getString(R.string.pair_1)+": "+mApp.mGame.mAllPlayerNames.get(0)+" ("+
-                playerPoints[0]+") + "+mApp.mGame.mAllPlayerNames.get(2)+" ("+
-                playerPoints[2]+") = "+getString(R.string.x_points, pair1Points);
+                playersPoints[0]+") + "+mApp.mGame.mAllPlayerNames.get(2)+" ("+
+                playersPoints[2]+") = "+getString(R.string.x_points, pair1Points);
 
         text += "\n";
 
         text += getString(R.string.pair_2)+": "+mApp.mGame.mAllPlayerNames.get(1)+" ("+
-                playerPoints[1]+") + "+mApp.mGame.mAllPlayerNames.get(3)+" ("+
-                playerPoints[3]+") = "+getString(R.string.x_points, pair2Points);
+                playersPoints[1]+") + "+mApp.mGame.mAllPlayerNames.get(3)+" ("+
+                playersPoints[3]+") = "+getString(R.string.x_points, pair2Points);
 
         text += "\n";
 
@@ -1001,6 +977,7 @@ public class GameBoardActivity extends AppCompatActivity implements
 
         return text;
     }
+    */
 
     private void showGameFinishedDialog() {
 
@@ -1149,12 +1126,12 @@ public class GameBoardActivity extends AppCompatActivity implements
 
     private String prepareTextToSpeech(String inText) {
 
-        // Eliminate the ''' characters
+        // Eliminate the <'> characters
         String outText = inText.replace("'", "").trim();
 
         if (outText.indexOf("-") < 0) {
 
-            // No '-' character has been found. This is a pass text...
+            // No <-> character has been found. This is a pass text...
 
             return outText;
         }
@@ -1162,41 +1139,44 @@ public class GameBoardActivity extends AppCompatActivity implements
         // Eliminate the '-' character
         outText = outText.replace("-", " ").trim();
 
-        String language = Locale.getDefault().getLanguage();
+        int length = outText.length();
 
-        if (language.compareTo("es") == 0) {
+        String tileString = outText.substring(length-3);
 
-            int length = outText.length();
+        outText = outText.substring(0, length-3);
 
-            String tileString = outText.substring(length-3);
+        String number1String = tileString.substring(0, 1);
 
-            outText = outText.substring(0, length-3);
+        int number1 = Integer.valueOf(number1String);
 
-            String aa = tileString.substring(0, 1);
+        String number2String = tileString.substring(2, 3);
 
-            int number1 = Integer.valueOf(aa);
+        int number2 = Integer.valueOf(number2String);
 
-            String bb = tileString.substring(2, 3);
-
-            int number2 = Integer.valueOf(bb);
-
-            String numberStrings[]={
-                    "blanca", "pito", "dos", "tres", "cuatro", "cinco", "seis"
+        String ttsNumberStrings[]={
+                getString(R.string.tile_number_0),
+                getString(R.string.tile_number_1),
+                getString(R.string.tile_number_2),
+                getString(R.string.tile_number_3),
+                getString(R.string.tile_number_4),
+                getString(R.string.tile_number_5),
+                getString(R.string.tile_number_6)
             };
 
-            String tileSpeechText = numberStrings[number1] + " ";
+        String tileSpeechText = ttsNumberStrings[number1];
 
-            if (number1 == number2) {
+        if (number1 == number2) {
 
-                tileSpeechText += "doble";
-            }
-            else {
-
-                tileSpeechText += numberStrings[number2];
-            }
-
-            outText += tileSpeechText;
+            // This is a double tile...
+            tileSpeechText = getString(R.string.tile_number_double, tileSpeechText);
         }
+        else {
+
+            // This is NOT a double tile...
+            tileSpeechText += " " + ttsNumberStrings[number2];
+        }
+
+        outText += tileSpeechText;
 
         return outText;
     }

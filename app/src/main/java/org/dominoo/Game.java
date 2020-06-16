@@ -23,6 +23,15 @@ public class Game {
         CANCELLED
     }
 
+    enum RoundStatus {
+
+        UNKNOWN,
+        NOT_STARTED,
+        RUNNING,
+        WON,
+        CLOSED
+    }
+
     static final int MAX_PLAYERS = 4;
 
     String mMyPlayerName;
@@ -33,12 +42,14 @@ public class Game {
 
     CommSocket mConnection;
 
-    ArrayList<DominoTile> mPlayerTiles = null;
+    ArrayList<DominoTile> mMyPlayerTiles = null;
 
     ArrayList<DominoTile> mBoardTiles1 = null;
     ArrayList<DominoTile> mBoardTiles2 = null;
 
     int mRoundCount = -1;
+
+    RoundStatus mRoundStatus = RoundStatus.UNKNOWN;
 
     boolean mForceDouble6Tile = false;
 
@@ -46,7 +57,12 @@ public class Game {
 
     PlayerPos mHandPlayerPos = PlayerPos.NONE;
 
-    int[] mPlayerPoints = new int[MAX_PLAYERS];
+    int mWinnerPlayerPos = -1;
+    int mCloserPlayerPos = -1;
+
+    int[] mPlayersPoints = new int[MAX_PLAYERS];
+
+    String[] mPlayersTiles = new String[MAX_PLAYERS];
 
     int mPair1Points = 0;
     int mPair2Points = 0;
@@ -73,7 +89,7 @@ public class Game {
             }
         }
 
-         return otherPlayers;
+        return otherPlayers;
     }
 
     int getMyPlayerPos() {
@@ -220,7 +236,7 @@ public class Game {
 
     public boolean removeTile(int number1, int number2) {
 
-        Iterator<DominoTile> iter = mPlayerTiles.iterator();
+        Iterator<DominoTile> iter = mMyPlayerTiles.iterator();
 
         while (iter.hasNext()) {
 
@@ -228,14 +244,14 @@ public class Game {
 
             if ((tile.mNumber1 == number1) && (tile.mNumber2 == number2)) {
 
-                mPlayerTiles.remove(tile);
+                mMyPlayerTiles.remove(tile);
 
                 return true;
             }
 
             if ((tile.mNumber1 == number2) && (tile.mNumber2 == number1)) {
 
-                mPlayerTiles.remove(tile);
+                mMyPlayerTiles.remove(tile);
 
                 return true;
             }
@@ -289,6 +305,68 @@ public class Game {
 
             mStatus= Game.Status.UNKNOWN;
         }
+    }
 
+    void processGameRoundMessage(Message msg) {
+
+        int roundCount = Integer.parseInt(msg.getArgument("roundCount"));
+
+        if (mRoundCount != roundCount) {
+
+            mRoundCount = roundCount;
+
+            /*
+            String text = getString(R.string.starting_round_x_, roundCount);
+
+            Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.CENTER,0, 0);
+            toast.show();
+            */
+        }
+
+        String roundStatus = msg.getArgument("status");
+
+        String alertString = null;
+        String titleString = null;
+
+        if (roundStatus.compareTo("won") == 0) {
+
+            mRoundStatus = RoundStatus.WON;
+
+            mWinnerPlayerPos = Integer.parseInt(msg.getArgument("winnerPlayerPos"));
+            mCloserPlayerPos = -1;
+        }
+        else if (roundStatus.compareTo("closed") == 0) {
+
+            mRoundStatus = RoundStatus.CLOSED;
+
+            mCloserPlayerPos = Integer.parseInt(msg.getArgument("closerPlayerPos"));
+            mWinnerPlayerPos = -1;
+        }
+        else if (roundStatus.compareTo("notStarted") == 0) {
+
+            mRoundStatus = RoundStatus.NOT_STARTED;
+        }
+        else if (roundStatus.compareTo("running") == 0) {
+
+            mRoundStatus = RoundStatus.RUNNING;
+        }
+        else {
+
+            mRoundStatus = RoundStatus.UNKNOWN;
+        }
+
+        if ((mRoundStatus == RoundStatus.CLOSED) || (mRoundStatus == RoundStatus.WON)) {
+
+            mPlayersPoints[0] = Integer.parseInt(msg.getArgument("player0Points"));
+            mPlayersPoints[1] = Integer.parseInt(msg.getArgument("player1Points"));
+            mPlayersPoints[2] = Integer.parseInt(msg.getArgument("player2Points"));
+            mPlayersPoints[3] = Integer.parseInt(msg.getArgument("player3Points"));
+
+            mPlayersTiles[0] = msg.getArgument("player0Tiles");
+            mPlayersTiles[1] = msg.getArgument("player1Tiles");
+            mPlayersTiles[2] = msg.getArgument("player2Tiles");
+            mPlayersTiles[3] = msg.getArgument("player3Tiles");
+        }
     }
 }

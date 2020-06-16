@@ -4,11 +4,11 @@ import org.dominoo.Message.MsgId;
 
 class CommProtocol {
 
-    static String createMsgLogin(String playerName) {
+    static String createMsgLogin(String playerName, String appVer) {
 
         String message;
 
-        message="<login, playerName="+playerName+">";
+        message="<login, playerName="+playerName+", appVer="+appVer+">";
 
         return message;
     }

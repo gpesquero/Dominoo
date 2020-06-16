@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 
 public class DominooApplication extends Application {
 
+    public String mVersion = BuildConfig.VERSION_NAME;
+
     public final static String DEFAULT_SERVER_ADDRESS="gpesquero.hopto.org";
     public final static int DEFAULT_SERVER_PORT=52301;
     public final static boolean DEFAULT_ALLOW_LAUNCH_GAMES = false;
@@ -77,7 +79,7 @@ public class DominooApplication extends Application {
     public boolean sendLoginMessage(String playerName) {
 
         // Create <Login> message
-        String message = CommProtocol.createMsgLogin(playerName);
+        String message = CommProtocol.createMsgLogin(playerName, mVersion);
 
         // Send the message to the server
         return mCommSocket.sendMessage(message);

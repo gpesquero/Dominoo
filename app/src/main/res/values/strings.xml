@@ -35,12 +35,15 @@
 
     <string name="pair_1">Pair 1</string>
     <string name="pair_2">Pair 2</string>
+    <string name="pair_x_has_less_points">(Pair %1$d has less points)</string>
     <string name="pair_x_has_won_the_game">Pair %1$d has won the game</string>
+    <string name="pair_x_has_won_the_round">Pair %1$d has won the round</string>
     <string name="pair_x_y_pts">Pair %1$d (%2$d pts)</string>
+    <string name="pair_x_y_plus_z_w_pts">Pair %1$d (%2$d+%3$d=%4$d pts)</string>
     <string name="partner_">Partner:</string>
     <string name="pass_turn">Pass turn</string>
-    <string name="player_has_won_the_round">The player \'%1$s\' has won the round.</string>
-    <string name="player_has_closed_the_round">The player \'%1$s\' has closed the round.</string>
+    <string name="player_has_won_the_round">Player \'%1$s\' has won the round</string>
+    <string name="player_has_closed_the_round">Player \'%1$s\' has closed the round</string>
     <string name="player_name_">Player name:</string>
     <string name="player_name_has_special_char">Player name has special characters. Use only letters and numbers</string>
     <string name="player_name_is_ok" translatable="false">Player name is Ok!</string>
@@ -58,6 +61,14 @@
     <string name="starting_round_x_">Starting round %1$d...</string>
 
     <string name="the_game_has_been_cancelled_">The game has been cancelled!!</string>
+    <string name="tile_number_0">zero</string>
+    <string name="tile_number_1">one</string>
+    <string name="tile_number_2">two</string>
+    <string name="tile_number_3">three</string>
+    <string name="tile_number_4">four</string>
+    <string name="tile_number_5">five</string>
+    <string name="tile_number_6">six</string>
+    <string name="tile_number_double">double %1$s</string>
     <string name="total_remaining_points_">Total remaining points:</string>
 
     <string name="unknown_game_status">Unknown game status</string>
