@@ -614,45 +614,6 @@ public class GameBoardView extends View {
 
     private void drawBoardTiles1(Canvas canvas, RectF borderRect, float tileLength) {
 
-        /*
-        mBoardTiles1.clear();
-        mBoardTiles1.add(new DominoTile(6, 6));
-        mBoardTiles1.add(new DominoTile(6, 5));
-        mBoardTiles1.add(new DominoTile(6, 4));
-        mBoardTiles1.add(new DominoTile(6, 3));
-        mBoardTiles1.add(new DominoTile(6, 2));
-        mBoardTiles1.add(new DominoTile(6, 1));
-        mBoardTiles1.add(new DominoTile(6, 0));
-
-        mBoardTiles1.add(new DominoTile(5, 5));
-        mBoardTiles1.add(new DominoTile(5, 4));
-        mBoardTiles1.add(new DominoTile(4, 4));
-        mBoardTiles1.add(new DominoTile(5, 3));
-        mBoardTiles1.add(new DominoTile(5, 2));
-        mBoardTiles1.add(new DominoTile(5, 1));
-        mBoardTiles1.add(new DominoTile(5, 0));
-
-        mBoardTiles1.add(new DominoTile(4, 4));
-        mBoardTiles1.add(new DominoTile(4, 3));
-        mBoardTiles1.add(new DominoTile(4, 2));
-        mBoardTiles1.add(new DominoTile(4, 1));
-        mBoardTiles1.add(new DominoTile(4, 0));
-
-        mBoardTiles1.add(new DominoTile(3, 3));
-        mBoardTiles1.add(new DominoTile(3, 2));
-        mBoardTiles1.add(new DominoTile(3, 1));
-        mBoardTiles1.add(new DominoTile(3, 0));
-
-        mBoardTiles1.add(new DominoTile(2, 2));
-        mBoardTiles1.add(new DominoTile(2, 1));
-        mBoardTiles1.add(new DominoTile(2, 0));
-
-        mBoardTiles1.add(new DominoTile(1, 1));
-        mBoardTiles1.add(new DominoTile(1, 0));
-
-        mBoardTiles1.add(new DominoTile(0, 0));
-        */
-
         // Starting direction is to the right...
         Dir dir = Dir.RIGHT;
 
@@ -662,6 +623,13 @@ public class GameBoardView extends View {
         // Shift starting position...
         pos.x -= (tileLength/2);
         pos.y += mOffsetY;
+
+        if (mBoardTiles1 == null) {
+
+            mNextBoardTile1Rect = null;
+
+            return;
+        }
 
         if (mBoardTiles1.size() < 1) {
 
@@ -802,51 +770,18 @@ public class GameBoardView extends View {
 
     private void drawBoardTiles2(Canvas canvas, RectF borderRect, float tileLength) {
 
-        /*
-        mBoardTiles2.clear();
-        mBoardTiles2.clear();
-        mBoardTiles2.add(new DominoTile(6, 6));
-        mBoardTiles2.add(new DominoTile(6, 5));
-        mBoardTiles2.add(new DominoTile(6, 4));
-        mBoardTiles2.add(new DominoTile(6, 3));
-        mBoardTiles2.add(new DominoTile(6, 2));
-        mBoardTiles2.add(new DominoTile(6, 1));
-        mBoardTiles2.add(new DominoTile(6, 0));
-
-        mBoardTiles2.add(new DominoTile(5, 5));
-        mBoardTiles2.add(new DominoTile(5, 4));
-        mBoardTiles2.add(new DominoTile(4, 4));
-        mBoardTiles2.add(new DominoTile(5, 3));
-        mBoardTiles2.add(new DominoTile(5, 2));
-        mBoardTiles2.add(new DominoTile(5, 1));
-        mBoardTiles2.add(new DominoTile(5, 0));
-
-        mBoardTiles2.add(new DominoTile(4, 4));
-        mBoardTiles2.add(new DominoTile(4, 3));
-        mBoardTiles2.add(new DominoTile(4, 2));
-        mBoardTiles2.add(new DominoTile(4, 1));
-        mBoardTiles2.add(new DominoTile(4, 0));
-
-        mBoardTiles2.add(new DominoTile(3, 3));
-        mBoardTiles2.add(new DominoTile(3, 2));
-        mBoardTiles2.add(new DominoTile(3, 1));
-        mBoardTiles2.add(new DominoTile(3, 0));
-
-        mBoardTiles2.add(new DominoTile(2, 2));
-        mBoardTiles2.add(new DominoTile(2, 1));
-        mBoardTiles2.add(new DominoTile(2, 0));
-
-        mBoardTiles2.add(new DominoTile(1, 1));
-        mBoardTiles2.add(new DominoTile(1, 0));
-
-        mBoardTiles2.add(new DominoTile(0, 0));
-        */
-
         // Starting direction is to the left...
         Dir dir = Dir.LEFT;
 
         // Set initial position...
         PointF pos = new PointF(borderRect.centerX(), borderRect.centerY()/2);
+
+        if ((mBoardTiles1 == null) || (mBoardTiles2 == null)) {
+
+            mNextBoardTile2Rect = null;
+
+            return;
+        }
 
         if (mBoardTiles1.size() > 0) {
 

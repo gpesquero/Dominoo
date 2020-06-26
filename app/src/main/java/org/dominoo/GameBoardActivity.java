@@ -1071,6 +1071,8 @@ public class GameBoardActivity extends AppCompatActivity implements
                     }
                 });
 
+        speak(getString(R.string.the_game_has_been_cancelled_));
+
         // Create alert dialog
         AlertDialog alertDialog = alertDialogBuilder.create();
 
