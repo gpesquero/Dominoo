@@ -263,13 +263,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 mTextViewPlayerName.setText(newPlayerName);
 
                                 dialog.dismiss();
+
+                                // Save valid player name in Shared Preferences...
+                                SharedPreferences.Editor prefEditor=mPrefs.edit();
+                                prefEditor.putString(getString(R.string.key_player_name), newPlayerName);
+                                prefEditor.commit();
                             }
                         }
                     }
             );
-
-
-
         }
     }
 
@@ -291,7 +293,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
         else {
 
-            Pattern p = Pattern.compile("[^A-Za-z0-9]");
+            Pattern p = Pattern.compile("[^A-Za-z0-9ñÑ]");
             Matcher m = p.matcher(playerName);
 
             if (m.find()) {

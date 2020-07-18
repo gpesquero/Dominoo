@@ -609,6 +609,16 @@ public class GameBoardActivity extends AppCompatActivity implements
 
             return;
         }
+        else {
+
+            mPlayerTilesView.clearSelection();
+
+            mGameBoardView.clearHighlights();
+
+            mApp.mGame.mTurnPlayerPos = Game.PlayerPos.RIGHT_OPPONENT;
+
+            updateControls();
+        }
 
         if (!mApp.mGame.removeTile(tile.mNumber1, tile.mNumber2)) {
 
@@ -742,6 +752,8 @@ public class GameBoardActivity extends AppCompatActivity implements
                 mPlayerTilesView.clearSelection();
 
                 mGameBoardView.clearHighlights();
+
+                mApp.mGame.mTurnPlayerPos = Game.PlayerPos.RIGHT_OPPONENT;
 
                 updateControls();
             }
