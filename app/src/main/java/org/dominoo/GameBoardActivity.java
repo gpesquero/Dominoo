@@ -3,6 +3,7 @@ package org.dominoo;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Gravity;
@@ -40,6 +41,40 @@ public class GameBoardActivity extends AppCompatActivity implements
     Button mButtonPassTurn;
 
     private TextToSpeech mTextToSpeech;
+
+    private Handler mTimerHandler;
+
+    private final int TIMER_DELAY = 10000;      // Timer every 10 seconds
+
+    private Runnable mTimerRunnable=new Runnable() {
+
+        @Override
+        public void run() {
+
+            long now = System.currentTimeMillis();
+
+            long tileInfoRxElapsedTime = now - mApp.mGame.mTileInfoRxTime;
+
+            if (tileInfoRxElapsedTime > TIMER_DELAY) {
+
+                if (!mApp.sendMessageRequestTileInfo()) {
+
+                    // Error sending message. Finish the activity...
+                    finish();
+                }
+            }
+
+            /*
+            String toastText = "TimeInfoRxElapsedTime: "+tileInfoRxElapsedTime+" ms";
+
+            Toast toast = Toast.makeText(GameBoardActivity.this, toastText, Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
+            */
+
+            mTimerHandler.postDelayed(this, TIMER_DELAY);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +115,11 @@ public class GameBoardActivity extends AppCompatActivity implements
             // Error sending message. Finish the activity...
             finish();
         }
+        else {
+
+            mTimerHandler=new Handler();
+            mTimerHandler.postDelayed(mTimerRunnable, TIMER_DELAY);
+        }
     }
 
     @Override
@@ -102,6 +142,11 @@ public class GameBoardActivity extends AppCompatActivity implements
             // Error sending message. Finish the activity...
             finish();
         }
+        else {
+
+            mTimerHandler=new Handler();
+            mTimerHandler.postDelayed(mTimerRunnable, TIMER_DELAY);
+        }
     }
 
     @Override
@@ -113,6 +158,12 @@ public class GameBoardActivity extends AppCompatActivity implements
         if (mApp.mCommSocket != null) {
 
             mApp.mCommSocket.setCommSocketListener(null);
+        }
+
+        if (mTimerHandler != null) {
+
+            mTimerHandler.removeCallbacks(mTimerRunnable);
+            mTimerHandler=null;
         }
     }
 
@@ -126,6 +177,12 @@ public class GameBoardActivity extends AppCompatActivity implements
 
             mTextToSpeech.stop();
             mTextToSpeech.shutdown();
+        }
+
+        if (mTimerHandler != null) {
+
+            mTimerHandler.removeCallbacks(mTimerRunnable);
+            mTimerHandler=null;
         }
     }
 
@@ -275,6 +332,8 @@ public class GameBoardActivity extends AppCompatActivity implements
             }
         }
         else if (msg.mId == Message.MsgId.GAME_TILE_INFO) {
+
+            mApp.mGame.mTileInfoRxTime = System.currentTimeMillis();
 
             int turnPlayerPos = Integer.parseInt(msg.getArgument("turnPlayer"));
 
@@ -461,95 +520,11 @@ public class GameBoardActivity extends AppCompatActivity implements
                 dialog.show();
             }
 
-            //dialog.setTitle(R.string.round_finished);
-
-            /*
-            dialog.setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int id) {
-
-                            dialog.cancel();
-
-                            if (!mApp.sendMessageRequestTileInfo()) {
-
-                                // Error sending message. Finish the activity...
-                                finish();
-
-                                return;
-                            }
-
-                            if (mApp.mGame.mStatus == Game.Status.FINISHED) {
-
-                                // Game has finished...
-                                // Show closing message and quit...
-
-                                showGameFinishedDialog();
-                            }
-                        }
-                    });
-
-            // Show it
-            dialog.show();
-            */
-
-            /*
-            if (alertString != null) {
-
-                speak(titleString);
-
-                AlertDialog.Builder alertDialogBuilder = null;
-
-                alertDialogBuilder = new AlertDialog.Builder(this);
-
-                alertDialogBuilder
-                        .setTitle(titleString)
-                        .setMessage(alertString)
-                        .setCancelable(false)
-                        .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-
-                            public void onClick(DialogInterface dialog, int id) {
-
-                                dialog.cancel();
-
-                                if (!mApp.sendMessageRequestTileInfo()) {
-
-                                    // Error sending message. Finish the activity...
-                                    finish();
-
-                                    return;
-                                }
-
-                                if (mApp.mGame.mStatus == Game.Status.FINISHED) {
-
-                                    // Game has finished...
-                                    // Show closing message and quit...
-
-                                    showGameFinishedDialog();
-                                }
-                            }
-                        });
-
-                // Create alert dialog
-                AlertDialog alertDialog = alertDialogBuilder.create();
-
-                // Show it
-                alertDialog.show();
-            }
-            */
-
             updateControls();
         }
         else if (msg.mId == Message.MsgId.PLAYED_TILE_INFO) {
 
             String playerName = msg.getArgument("playerName");
-
-            if (playerName.compareTo(mApp.mGame.mMyPlayerName) == 0) {
-
-                // Played tile info from ourselves
-                // There is no need to print played tile info
-
-                return;
-            }
 
             String tileText = msg.getArgument("playedTile");
 
@@ -564,9 +539,16 @@ public class GameBoardActivity extends AppCompatActivity implements
                 text = getString(R.string.x_has_played_tile_y, playerName, tileText);
             }
 
-            Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.CENTER, 0, -100);
-            toast.show();
+            if (playerName.compareTo(mApp.mGame.mMyPlayerName) != 0) {
+
+                // Played tile info from other player. Print played tile info...
+
+                Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER, 0, -100);
+                toast.show();
+
+                return;
+            }
 
             if (mTextToSpeech != null) {
 

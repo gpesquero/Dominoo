@@ -67,6 +67,8 @@ public class Game {
     int mPair1Points = 0;
     int mPair2Points = 0;
 
+    long mTileInfoRxTime = 0;
+
     Game() {
 
         mAllPlayerNames = new ArrayList<String>();
