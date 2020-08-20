@@ -546,8 +546,6 @@ public class GameBoardActivity extends AppCompatActivity implements
                 Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.CENTER, 0, -100);
                 toast.show();
-
-                return;
             }
 
             if (mTextToSpeech != null) {
