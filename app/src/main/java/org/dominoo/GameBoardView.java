@@ -559,6 +559,14 @@ public class GameBoardView extends View {
         mHighlightNextBoardTile1 = false;
         mHighlightNextBoardTile2 = false;
 
+        if (selectedTile == null) {
+
+            // We have de-selected the tile
+            // Return as we don't have to highlight any tile
+
+            return;
+        }
+
         if (mBoardTiles1.size() == 0) {
 
             if (forceDouble6Tile) {

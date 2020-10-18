@@ -102,8 +102,6 @@ public class RoundEndDialog {
 
         if (game.mWinnerPlayerPos >= 0) {
 
-            //title = mActivity.getString(R.string.round_finished);
-
             String winnerName = game.getPlayerName(game.mWinnerPlayerPos);
 
             mTitle = mActivity.getString(R.string.player_has_won_the_round, winnerName);
@@ -112,8 +110,6 @@ public class RoundEndDialog {
         }
         else if (game.mCloserPlayerPos >= 0) {
 
-            //title = mActivity.getString(R.string.round_closed);
-
             String closerName = game.getPlayerName(game.mCloserPlayerPos);
 
             mTitle = mActivity.getString(R.string.player_has_closed_the_round, closerName);
@@ -121,14 +117,10 @@ public class RoundEndDialog {
             if (pair1Count < pair2Count) {
 
                 winningPair = 1;
-
-                //winnerComment = mActivity.getString(R.string.pair_x_has_less_points, winningPair);
             }
             else if (pair2Count < pair1Count) {
 
                 winningPair = 2;
-
-                //winnerComment = mActivity.getString(R.string.pair_x_has_less_points, winningPair);
             }
             else {
 

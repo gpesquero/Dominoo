@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class PlayerTilesView extends View {
 
@@ -51,11 +52,41 @@ public class PlayerTilesView extends View {
 
     }
 
-    public void setTiles(ArrayList<DominoTile> tiles) {
+    public void setTiles(ArrayList<DominoTile> newTiles) {
 
-        mTiles = tiles;
+        int selectedTileFound = -1;
 
-        mSelectedTile = -1;
+        DominoTile selectedTile = null;
+
+        if (mSelectedTile >= 0) {
+
+            // There's a selected tile.
+            // Let's try to keep it selected...
+
+            selectedTile = mTiles.get(mSelectedTile);
+
+            for(int i=0; i<newTiles.size(); i++) {
+
+                if (selectedTile.compareTo(newTiles.get(i)) == 0) {
+
+                    selectedTileFound = i;
+
+                    break;
+                }
+            }
+        }
+
+        mTiles = newTiles;
+
+        mSelectedTile = selectedTileFound;
+
+        if (mSelectedTile >= 0) {
+
+            if (mListener != null) {
+
+                mListener.onTileSelected(selectedTile);
+            }
+        }
     }
 
     public void setOnTileSelectedListener(OnTileSelectedListener listener) {
@@ -160,6 +191,11 @@ public class PlayerTilesView extends View {
 
             mSelectedTile = -1;
 
+            if (mListener != null) {
+
+                mListener.onTileSelected(null);
+            }
+
             invalidate();
 
             return false;
@@ -172,6 +208,11 @@ public class PlayerTilesView extends View {
         if (x > rightX) {
 
             mSelectedTile = -1;
+
+            if (mListener != null) {
+
+                mListener.onTileSelected(null);
+            }
 
             invalidate();
 

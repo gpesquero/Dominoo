@@ -235,7 +235,6 @@ public class DominoTile implements Comparable<DominoTile> {
         }
 
         Collections.sort(tiles);
-
     }
 
     @Override
